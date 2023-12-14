@@ -1,0 +1,104 @@
+---
+
+# general
+
+- name: Set timezone to {{ timezone_name }}
+  community.general.timezone:
+    name: '{{ timezone_name }}'
+
+- name: Ensure ufw firewall is disabled, as this is a dev machine
+  ansible.builtin.ufw:
+    state: 'disabled'
+
+- name: Create directories for root
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'directory'
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rwx,g=rx,o=rx'
+  loop:
+    - '{{ www_dir }}'
+
+- name: Create directories for vagrant
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'directory'
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rwx,g=rx,o=rx'
+  loop:
+    - '{{ services_dir }}'
+    - '{{ web_partial_dir }}'
+    - '{{ config_dir }}'
+    - '{{ log_dir }}'
+
+# additional vars
+
+- name: Template the bash additional env vars file
+  ansible.builtin.template:
+    src: 'additional-env-vars.sh'
+    dest: '{{ bash_env_vars_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Template the systemd additional env vars file
+  ansible.builtin.template:
+    src: 'additional-env-vars.ini'
+    dest: '{{ systemd_env_vars_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
+# apt packages
+
+- name: Install required dependencies
+  ansible.builtin.apt:
+    name:
+      - 'unzip'
+      - 'jq'
+      - 'apt-transport-https'
+      - 'ca-certificates'
+      - 'curl'
+      - 'gnupg-agent'
+      - 'dos2unix'
+      - 'python3-lxml'
+      - 'chromium-browser'
+      - 'chromium-chromedriver'
+      - 'firefox'
+      - 'firefox-geckodriver'
+      - 'gnupg'
+      - 'lsb-release'
+      - 'libsystemd-dev'
+      - 'pkg-config'
+    state: 'present'
+
+- name: Template the shared logback config file
+  ansible.builtin.template:
+    src: 'logback.xml'
+    dest: '{{ logback_config_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Configure apt source and install packages
+  ansible.builtin.include_role:
+    name: common_apt_source
+  vars:
+    apt_source_name: '{{ item.name }}'
+    apt_source_ubuntu_gpg_url: '{{ item.gpg_url }}'
+    apt_source_ubuntu_gpg_fingerprint_expected: '{{ item.gpg_fingerprint_expected }}'
+    apt_source_ubuntu_apt_url: '{{ item.apt_url }}'
+    apt_source_ubuntu_apt_arch: '{{ item.apt_arch }}'
+    apt_source_ubuntu_apt_dist: '{{ item.apt_dist }}'
+    apt_source_ubuntu_apt_component: '{{ item.apt_component }}'
+    apt_source_packages: '{{ item.packages }}'
+  loop: '{{ apt_source_items }}'
+

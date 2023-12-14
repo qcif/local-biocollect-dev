@@ -1,0 +1,13 @@
+---
+# settings
+app_theme_name: 'app_theme'
+app_theme_group: 'app'
+app_theme_category: 'web'
+app_theme_ports:
+  http: '{{ specified_ports.theme_http_port }}'
+app_theme_links: {}
+
+# paths
+app_theme_html_dir: '{{ www_dir }}/{{ app_theme_name }}'
+app_theme_entry_nginx_path: '{{ nginx_conf_partial_path }}/{{ app_theme_name }}.conf'
+app_theme_entry_html_path: '{{ web_partial_dir }}/{{ app_theme_name }}.html'

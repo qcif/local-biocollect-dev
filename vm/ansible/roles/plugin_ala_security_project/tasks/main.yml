@@ -1,0 +1,56 @@
+---
+
+- name: Create directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'directory'
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rwx,g=rx,o=rx'
+  loop: []
+
+- name: Template the bash functions file
+  ansible.builtin.template:
+    src: 'helpers.sh'
+    dest: '{{ plugin_ala_security_project_helper_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ plugin_ala_security_project_name }}'
+    entry_java: '{{ plugin_ala_security_project_java }}'
+    entry_builder: '{{plugin_ala_security_project_builder }}'
+    entry_working_dir: '{{ plugin_ala_security_project_source_dir }}'
+    entry_is_service: false
+
+- name: Template the nginx conf
+  ansible.builtin.template:
+    src: 'entry-nginx.conf'
+    dest: '{{ plugin_ala_security_project_entry_nginx_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ plugin_ala_security_project_name }}'
+    entry_ports: '{{ plugin_ala_security_project_ports }}'
+    entry_working_dir: '{{ plugin_ala_security_project_source_dir }}'
+
+- name: Template the nginx html
+  ansible.builtin.template:
+    src: 'entry-index.html'
+    dest: '{{ plugin_ala_security_project_entry_html_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_group: '{{ plugin_ala_security_project_group }}'
+    entry_category: '{{ plugin_ala_security_project_category }}'
+    entry_name: '{{ plugin_ala_security_project_name }}'
+    entry_ports: '{{ plugin_ala_security_project_ports }}'
+    entry_links: '{{ plugin_ala_security_project_links }}'

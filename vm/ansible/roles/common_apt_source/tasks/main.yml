@@ -1,0 +1,84 @@
+---
+- name: Create {{ apt_source_name }} directories for root
+  ansible.builtin.file:
+    path: '{{ apt_source_dir }}'
+    state: 'directory'
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rwx,g=rx,o=rx'
+  loop:
+    - '{{ apt_source_keyrings_dir }}'
+  loop_control:
+    loop_var: 'apt_source_dir'
+
+- name: Set {{ apt_source_name }} gpg paths
+  ansible.builtin.set_fact:
+    apt_source_ubuntu_gpg_text_path: '/tmp/{{ apt_source_name }}-archive-key.gpg'
+    apt_source_ubuntu_gpg_keyring_path: '{{ apt_source_keyrings_dir }}/{{ apt_source_name }}-archive-key.gpg'
+
+- name: Get {{ apt_source_name }} apt repo gpg key
+  ansible.builtin.get_url:
+    url: '{{ apt_source_ubuntu_gpg_url }}'
+    dest: '{{ apt_source_ubuntu_gpg_text_path }}'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Get {{ apt_source_name }} gpg key fingerprint
+  ansible.builtin.set_fact:
+    apt_source_ubuntu_gpg_fingerprint_actual: "{{ lookup('community.crypto.gpg_fingerprint', '{{ apt_source_ubuntu_gpg_text_path }}') }}"
+
+- name: Verify {{ apt_source_name }} gpg key fingerprint matches
+  ansible.builtin.fail:
+    msg: "Invalid gpg key fingerprint. Expected: '{{ apt_source_ubuntu_gpg_fingerprint_expected }}'. Actual: '{{ apt_source_ubuntu_gpg_fingerprint_actual }}'."
+  when: not apt_source_ubuntu_gpg_fingerprint_actual or not apt_source_ubuntu_gpg_fingerprint_expected or
+    apt_source_ubuntu_gpg_fingerprint_actual != apt_source_ubuntu_gpg_fingerprint_expected
+
+- name: Install {{ apt_source_name }} apt repo gpg key
+  ansible.builtin.command:
+    cmd: 'gpg --dearmor --output {{ apt_source_ubuntu_gpg_keyring_path }} {{ apt_source_ubuntu_gpg_text_path }}'
+  args:
+    creates: '{{ apt_source_ubuntu_gpg_keyring_path }}'
+
+- name: Add {{ apt_source_name }} apt repo source file
+  ansible.builtin.template:
+    src: 'apt_source.list'
+    dest: '/etc/apt/sources.list.d/{{ apt_source_name }}.list'
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  register: apt_source_list_result
+
+- name: Update {{ apt_source_name }} apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  when: apt_source_list_result.changed
+
+# There are at least 3 ways to stay on a version of a package: apt-mark, dpkg_selections, apt_preferences
+# Rejected apt-mark because although it allows wildcards, it does not allow for security updates.
+# Rejected dpkg_selections because it requires setting a specific version, not a wildcard.
+# Chose apt_preferences because it can 'pin' a package version using wildcard to ensure known version.
+# Pinning allows for security updates and not failing when older versions are removed from the repository.
+# Ansible only supports dpkg_selections directly.
+# More info on apt_preferences: https://manpages.ubuntu.com/manpages/focal/en/man5/apt_preferences.5.html
+# Selected priority '1001' to 'cause a version to be installed even if this constitutes a downgrade of the package'.
+# This combined with specifying the version via apt install should ensure the expected version is always installed.
+# Note that files in the 'preferences.d' dir must have no extension or '.pref' extension
+- name: Add {{ apt_source_name }} apt preferences file to pin package version
+  ansible.builtin.template:
+    src: 'pin-version.conf'
+    dest: '/etc/apt/preferences.d/pin-version-{{ apt_source_name }}-{{ apt_source_pin.name | regex_replace("[^a-zA-Z0-9\-]", "-") }}.pref'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  loop: '{{ apt_source_packages }}'
+  loop_control:
+    loop_var: 'apt_source_pin'
+
+- name: Install {{ apt_source_name }} packages
+  ansible.builtin.apt:
+    name: '{{ apt_source_package.name }}'
+    state: 'latest'
+  loop: '{{ apt_source_packages }}'
+  loop_control:
+    loop_var: 'apt_source_package'

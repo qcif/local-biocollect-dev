@@ -1,0 +1,10 @@
+---
+
+- name: Generate secrets
+  ansible.builtin.import_tasks: secrets.yml
+
+- name: General setup and install packages
+  ansible.builtin.import_tasks: general.yml
+
+- name: Install and configure docker
+  ansible.builtin.import_tasks: docker.yml

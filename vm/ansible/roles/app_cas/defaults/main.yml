@@ -1,0 +1,52 @@
+---
+# settings
+app_cas_name: 'app_cas'
+app_cas_group: 'app'
+app_cas_category: 'auth'
+app_cas_builder: 'maven'
+app_cas_java: '11'
+app_cas_ports:
+  http: '{{ specified_ports.cas_http_port }}'
+  debug: '{{ specified_ports.cas_debug_port }}'
+app_cas_links:
+  tests: 'target/site/surefire-report.html'
+
+# paths
+app_cas_config_dir: '/data/cas/config'
+app_cas_helper_path: '{{ ubuntu_profile_dir }}/03-helper-app-cas.sh'
+app_cas_entry_nginx_path: '{{ nginx_conf_partial_path }}/{{ app_cas_name }}.conf'
+app_cas_entry_html_path: '{{ web_partial_dir }}/{{ app_cas_name }}.html'
+app_cas_systemd_service_path: '{{ systemd_services_dir }}/{{ app_cas_name }}.service'
+app_cas_config_path: '{{ app_cas_config_dir }}/cas-config.yml'
+app_cas_config_pwe_path: '{{ app_cas_config_dir }}/cas-pwe-config.properties'
+app_cas_source_dir: '{{ guest_src_dir }}/ala-cas-5'
+
+# databases
+app_cas_mysql_db_main_database: 'cas_main'
+app_cas_mysql_db_main_username: 'cas_main'
+
+app_cas_mysql_db_test_database: 'cas_test'
+app_cas_mysql_db_test_username: 'cas_test'
+
+app_cas_db_spring_data_username: 'cas_spring_data'
+app_cas_db_spring_data_database: 'cas_spring_data'
+
+# Settings that resemble production to test the built artifact.
+app_cas_java_opts:
+  - '-Djava.awt.headless=true'
+  - '-XX:+UseG1GC'
+  - '-Xms256m'
+  - '-Xmx1g'
+  - '-Dcas.standalone.configurationDirectory={{ app_cas_config_dir }}'
+  - '-Dcas.standalone.config={{ app_cas_config_dir }}'
+  - '-Dala.password.properties={{ app_cas_config_pwe_path }}'
+  - '-XX:ErrorFile={{ services_dir }}/{{ app_cas_name }}_hs_err_pid_%p.log'
+  - '-Dlog4j2.formatMsgNoLookups=true'
+
+app_cas_env_vars:
+  - key: 'SPRING_CONFIG_LOCATION'
+    value: 'file:{{ app_cas_config_path }}'
+  - key: 'LOG4J_FORMAT_MSG_NO_LOOKUPS'
+    value: 'true'
+  - key: 'LOG_DIR'
+    value: '{{ log_dir }}'

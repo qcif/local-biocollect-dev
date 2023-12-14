@@ -1,0 +1,50 @@
+
+# {{ ansible_managed }}
+
+[Unit]
+Description={{ entry_name }}
+After=network.target
+
+[Service]
+Type=simple
+
+Environment="JAVA_HOME={% if entry_java == '8' %}{{ java_8_home_dir }}{% elif entry_java == '11' %}{{ java_11_home_dir }}{% endif %}"
+Environment="SPRING_CONFIG_LOCATION=file:{{ entry_config_path }}"
+Environment="LOGGING_DIR={{ log_dir }}"
+Environment="LOG_DIR={{ log_dir }}"
+EnvironmentFile={{ systemd_env_vars_path }}
+
+WorkingDirectory={{ entry_working_dir }}
+
+# {% if entry_builder == 'gradle' %}
+
+ExecStartPre=/usr/bin/dos2unix '{{ entry_working_dir }}/gradlew'
+ExecStart={{ entry_working_dir }}/gradlew \
+    --warning-mode all \
+    --stacktrace \
+    --info \
+    --console=plain \
+    -Dlogging.config={{ logback_config_path }} \
+    bootRun \
+    --args='--spring-boot.run.jvmArguments="{% for entry_jvm_arg in entry_jvm_args %}{{ entry_jvm_arg }} {% endfor %}"'
+
+# {% elif entry_builder == 'maven' %}
+
+Environment="MAVEN_OPTS={% for entry_jvm_arg in entry_jvm_args %}{{ entry_jvm_arg }} {% endfor %}"
+
+ExecStartPre=/usr/bin/dos2unix '{{ entry_working_dir }}/mvnw'
+ExecStart={{ entry_working_dir }}/mvnw -Dmaven.plugin.validation=VERBOSE package spring-boot:run -T 5
+
+# {% else %}
+
+# Unknown source builder {{ entry_builder }}.
+
+# {% endif %}
+
+User=vagrant
+Group=vagrant
+
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,136 @@
+---
+
+- name: Create directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'directory'
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rwx,g=rx,o=rx'
+  loop:
+    - '{{ app_cas_config_dir }}'
+
+- name: Template the bash functions file
+  ansible.builtin.template:
+    src: 'helpers.sh'
+    dest: '{{ app_cas_helper_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ app_cas_name }}'
+    entry_java: '{{ app_cas_java }}'
+    entry_builder: '{{app_cas_builder }}'
+    entry_working_dir: '{{ app_cas_source_dir }}'
+    entry_java_opts: '{{ app_cas_java_opts }}'
+    entry_env_vars: '{{ app_cas_env_vars }}'
+    entry_java_artifact_name: 'target/cas-exec.war'
+    entry_is_service: true
+
+- name: Template the nginx conf
+  ansible.builtin.template:
+    src: 'entry-nginx.conf'
+    dest: '{{ app_cas_entry_nginx_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ app_cas_name }}'
+    entry_ports: '{{ app_cas_ports }}'
+    entry_working_dir: '{{ app_cas_source_dir }}'
+
+- name: Template the nginx html
+  ansible.builtin.template:
+    src: 'entry-index.html'
+    dest: '{{ app_cas_entry_html_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_group: '{{ app_cas_group }}'
+    entry_category: '{{ app_cas_category }}'
+    entry_name: '{{ app_cas_name }}'
+    entry_ports: '{{ app_cas_ports }}'
+    entry_links: '{{ app_cas_links }}'
+
+- name: Template the systemd unit file
+  ansible.builtin.template:
+    src: 'app-systemd.service'
+    dest: '{{ app_cas_systemd_service_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  notify:
+    - Systemd daemon reload
+  vars:
+    entry_name: '{{ app_cas_name }}'
+    entry_java: '{{ app_cas_java }}'
+    entry_config_path: '{{ app_cas_config_path }}'
+    entry_working_dir: '{{ app_cas_source_dir }}'
+    entry_builder: '{{app_cas_builder }}'
+    entry_jvm_args:
+      - '-Dspring.output.ansi.enabled=never'
+      - '-Dfile.encoding=UTF-8'
+      - '-Xmx1g'
+      - '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ specified_ports.cas_debug_port }}'
+
+- name: Template the config file
+  ansible.builtin.template:
+    src: 'application.yml'
+    dest: '{{ app_cas_config_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Template the pwe config file
+  ansible.builtin.template:
+    src: 'pwe.properties'
+    dest: '{{ app_cas_config_pwe_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Ensure mysql databases exist for cas
+  community.mysql.mysql_db:
+    login_host: '{{ local_host }}'
+    login_port: '{{ specified_ports.mysql_service_port }}'
+    login_user: '{{ mysql_service_root_username }}'
+    login_password: '{{ mysql_service_root_password }}'
+    name: '{{ item }}'
+    state: 'present'
+  loop:
+    - '{{ app_cas_mysql_db_main_database }}'
+    - '{{ app_cas_mysql_db_test_database }}'
+
+- name: Ensure mysql users exist for cas
+  community.mysql.mysql_user:
+    login_host: '{{ local_host }}'
+    login_port: '{{ specified_ports.mysql_service_port }}'
+    login_user: '{{ mysql_service_root_username }}'
+    login_password: '{{ mysql_service_root_password }}'
+    name: '{{ item.username }}'
+    host: '%'
+    plugin: 'caching_sha2_password'
+    plugin_auth_string: '{{ item.password }}'
+    priv: '{{ item.database }}.*:ALL'
+    column_case_sensitive: true
+    state: 'present'
+  loop:
+    - database: '{{ app_cas_mysql_db_main_database }}'
+      username: '{{ app_cas_mysql_db_main_username }}'
+      password: '{{ app_cas_mysql_db_main_password }}'
+    - database: '{{ app_cas_mysql_db_test_database }}'
+      username: '{{ app_cas_mysql_db_test_username }}'
+      password: '{{ app_cas_mysql_db_test_password }}'

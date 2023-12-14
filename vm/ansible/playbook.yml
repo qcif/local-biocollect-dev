@@ -1,0 +1,43 @@
+---
+- name: Create and configure local-biocollect-dev
+  hosts: all
+  tasks:
+    - name: Configure the VM
+      ansible.builtin.import_role:
+        name: common_configure_vm
+
+    # plugins
+    - name: Set up plugin ala-bootstrap3
+      ansible.builtin.import_role:
+        name: plugin_ala_bootstrap3
+    - name: Set up plugin ala-map-plugin
+      ansible.builtin.import_role:
+        name: plugin_ala_map
+    - name: Set up plugin ala-security-project
+      ansible.builtin.import_role:
+        name: plugin_ala_security_project
+
+    # apps
+    - name: Set up app theme
+      ansible.builtin.import_role:
+        name: app_theme
+    - name: Set up app cas
+      ansible.builtin.import_role:
+        name: app_cas
+    - name: Set up app apikey
+      ansible.builtin.import_role:
+        name: app_apikey
+    - name: Set up app userdetails
+      ansible.builtin.import_role:
+        name: app_userdetails
+    - name: Set up app ecodata
+      ansible.builtin.import_role:
+        name: app_ecodata
+    - name: Set up app biocollect
+      ansible.builtin.import_role:
+        name: app_biocollect
+
+    # last step
+    - name: Finalise the VM
+      ansible.builtin.import_role:
+        name: common_finalise_vm

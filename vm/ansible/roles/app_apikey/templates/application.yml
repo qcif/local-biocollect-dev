@@ -1,0 +1,153 @@
+---
+
+# Examples:
+# https://github.com/AtlasOfLivingAustralia/ala-install/tree/master/ansible/roles/apikey/templates
+# https://github.com/AtlasOfLivingAustralia/apikey/blob/master/grails-app/conf/application.yml
+
+
+{{ lookup("ansible.builtin.template", "shared-content.yml") }}
+
+# --- Database ---
+
+common_datasource_mysql_main_properties: &common_datasource_mysql_main_properties
+  url: '{{ mysql_base_url }}/{{ app_apikey_db_main_database }}?{{ mysql_default_uri_options }}'
+  jdbcUrl: '{{ mysql_base_url }}/{{ app_apikey_db_main_database }}?{{ mysql_default_uri_options }}'
+  username: '{{ app_apikey_db_main_username }}'
+  password: '{{ app_apikey_db_password }}'
+
+common_datasource_mysql_test_properties: &common_datasource_mysql_test_properties
+  url: '{{ mysql_base_url }}/{{ app_apikey_db_test_database }}?{{ mysql_default_uri_options }}'
+  jdbcUrl: '{{ mysql_base_url }}/{{ app_apikey_db_test_database }}?{{ mysql_default_uri_options }}'
+  username: '{{ app_apikey_db_test_username }}'
+  password: '{{ app_apikey_db_test_password }}'
+
+common_spring_data_mongodb_properties: &common_spring_data_mongodb_properties
+  uri: 'mongodb://{{ app_apikey_db_spring_data_username }}:{{ app_apikey_db_spring_data_password }}@{{ web_base_host }}:{{ specified_ports.mongo_service_port }}/{{ app_apikey_db_spring_data_database }}?{{ mongo_default_uri_options }}'
+  host: '{{ web_base_host }}'
+  port: {{ specified_ports.mongo_service_port }}
+  username: '{{ app_apikey_db_spring_data_username }}'
+  password: '{{ app_apikey_db_spring_data_password }}'
+  database: '{{ app_apikey_db_spring_data_database }}'
+
+hibernate:
+  dialect: 'org.hibernate.dialect.MySQL8Dialect'
+
+dataSource:
+  <<: *shared_datasource_mysql_defaults
+
+# --- Spring ---
+
+spring:
+  flyway: &common_spring_flyway_properties
+    enabled: true
+    baselineOnMigrate: true
+    baselineVersion: 1
+    table: schema_version
+    <<: *shared_datasource_mysql_defaults
+
+  session: &common_spring_session_properties
+    enabled: true
+    store-type: mongodb
+    mongo:
+      collectionName: sessions_apikey
+
+  data: &common_spring_data_properties
+    mongodb:
+      <<: *common_spring_data_mongodb_properties
+
+# --- Embedded tomcat ---
+
+server:
+  port: '{{ specified_ports.apikey_http_port }}'
+  ssl:
+    enabled: false
+  servlet:
+    application-display-name: '{{ app_apikey_name }}'
+    context-path: '/{{ app_apikey_name }}'
+
+# --- Auth & CAS ---
+
+security: &app_security_settings
+  jwt:
+    enabled: false
+    discoveryUri: '{{ web_base_url }}/{{ app_cas_name }}/oidc/.well-known'
+    fallbackToLegacyBehaviour: true
+  oidc:
+    enabled: false
+    discoveryUri: '{{ web_base_url }}/{{ app_cas_name }}/oidc/.well-known'
+    clientId: "{{ app_apikey_oidc_client_id }}"
+    secret: "{{ app_apikey_oidc_secret }}"
+    scope: "openid,profile,email,ala,roles"
+    allowUnsignedIdTokens: true
+  cas:
+    enabled: true
+    appServerName: '{{ web_base_url }}'
+    contextPath: '/{{ app_apikey_name }}'
+    uriFilterPattern: [ "/testAuth","/upload" ]
+    authenticateOnlyIfLoggedInFilterPattern: [ "/*" ]
+    uriExclusionFilterPattern: [ '/assets/.*','/uploads/.*' ]
+    <<: *shared_security_cas_defaults
+
+# --- Theme and skin ---
+
+headerAndFooter:
+  <<: *shared_header_footer_defaults
+
+skin:
+  <<: *shared_skin_defaults
+
+# --- Set for the environments to override config embedded in app ---
+
+environments:
+  development:
+    dataSource:
+      <<: *shared_datasource_mysql_defaults
+      <<: *common_datasource_mysql_main_properties
+      dbCreate: 'none'
+    spring:
+      flyway:
+        <<: *common_spring_flyway_properties
+      session:
+        <<: *common_spring_session_properties
+      data:
+        <<: *common_spring_data_properties
+    flyway:
+      <<: *common_spring_flyway_properties
+    security:
+      <<: *app_security_settings
+
+  test:
+    dataSource:
+      <<: *shared_datasource_mysql_defaults
+      <<: *common_datasource_mysql_test_properties
+      dbCreate: 'none'
+      logSql: true
+      formatSql: true
+    spring:
+      flyway:
+        <<: *common_spring_flyway_properties
+      session:
+        <<: *common_spring_session_properties
+      data:
+        <<: *common_spring_data_properties
+    flyway:
+      <<: *common_spring_flyway_properties
+    security:
+      <<: *app_security_settings
+
+  production:
+    dataSource:
+      <<: *shared_datasource_mysql_defaults
+      <<: *common_datasource_mysql_main_properties
+      dbCreate: 'none'
+    spring:
+      flyway:
+        <<: *common_spring_flyway_properties
+      session:
+        <<: *common_spring_session_properties
+      data:
+        <<: *common_spring_data_properties
+    flyway:
+      <<: *common_spring_flyway_properties
+    security:
+      <<: *app_security_settings

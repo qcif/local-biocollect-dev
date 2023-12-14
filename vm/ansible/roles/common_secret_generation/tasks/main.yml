@@ -1,0 +1,100 @@
+---
+
+# param: secret_gen_size (16, 32, 256, 512)
+# param: secret_gen_type (data_base64, password_string, jwt_key)
+# param: secret_gen_name
+
+# output: secret_gen_value
+
+- name: Check the secret_gen_size value
+  ansible.builtin.fail:
+    msg: "Invalid 'secret_gen_size'. Must be greater than or equal to 16 and less than or equal to 512: '{{ secret_gen_size }}'."
+  when: 'not secret_gen_size or secret_gen_size < 16 or secret_gen_size > 512'
+
+- name: Check the secret_gen_type value
+  ansible.builtin.fail:
+    msg: "Invalid 'secret_gen_type'. Must be one of 'data_base64', 'password_string', 'jwt_key': '{{ secret_gen_type }}'"
+  when: "not secret_gen_type or secret_gen_type not in ['data_base64', 'password_string', 'jwt_key']"
+
+- name: Check the secret_gen_name value
+  ansible.builtin.fail:
+    msg: "Invalid 'secret_gen_name'. Must be set."
+  when: 'not secret_gen_name or not secret_gen_name.strip()'
+
+- name: Create directory
+  ansible.builtin.file:
+    path: '{{ secret_gen_dir }}'
+    state: 'directory'
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rwx,g=,o='
+
+# --- Check for existing file ---
+
+- name: Check if file exists
+  ansible.builtin.stat:
+    path: '{{ secret_gen_dir }}/{{ secret_gen_name }}'
+  register: secret_gen_file_stat_result
+
+# --- Generate random data ---
+
+# - which is base64 encoded
+# - of the given length (size)
+- name: Generate random data base64 encoded
+  ansible.builtin.command:
+    cmd: '/usr/bin/openssl rand -base64 {{ secret_gen_size }}'
+  register: secret_gen_data_base64_result
+  when: not secret_gen_file_stat_result.stat.exists and secret_gen_type == 'data_base64'
+
+- name: Save random data base64 encoded to file
+  ansible.builtin.copy:
+    content: "{{ secret_gen_data_base64_result.stdout }}"
+    dest: '{{ secret_gen_dir }}/{{ secret_gen_name }}'
+  when: not secret_gen_file_stat_result.stat.exists and secret_gen_type == 'data_base64'
+
+# --- Generate a random password ---
+
+# - with lowercase, uppwercase, numeric, special chars
+# - of the given length (size)
+- name: Generate a random password and save to file
+  ansible.builtin.copy:
+    content: "{{ lookup('community.general.random_string', length=secret_gen_size, min_lower=1, min_numeric=1, min_special=1, min_upper=1, override_special=secret_gen_special_chars) }}"
+    dest: '{{ secret_gen_dir }}/{{ secret_gen_name }}'
+  when: not secret_gen_file_stat_result.stat.exists and secret_gen_type == 'password_string'
+
+# --- Generate a random JWT key ---
+
+- name: Download jwt generation library
+  ansible.builtin.uri:
+    url: 'https://github.com/apereo/cas/raw/6.6.x/etc/jwk-gen.jar?raw=true'
+    dest: '{{ services_dir }}/jwk-gen.jar'
+    creates: '{{ services_dir }}/jwk-gen.jar'
+    mode: 'u=rw,g=r,o=r'
+  when: not secret_gen_file_stat_result.stat.exists and secret_gen_type == 'jwt_key'
+
+# - of the given length (size)
+- name: Generate a JWT key
+  ansible.utils.cli_parse:
+    command: '{{ java_11_java_file }} -jar {{ services_dir }}/jwk-gen.jar -t oct -s {{ secret_gen_size }}'
+    parser:
+      name: ansible.netcommon.native
+      template_path: '{{ role_path }}/templates/parse_jwk_gen_output.yml'
+    set_fact: secret_gen_jwt_key_result
+  when: not secret_gen_file_stat_result.stat.exists and secret_gen_type == 'jwt_key'
+
+- name: Save JWT key to file
+  ansible.builtin.copy:
+    content: "{{ secret_gen_jwt_key_result.key }}"
+    dest: '{{ secret_gen_dir }}/{{ secret_gen_name }}'
+  when: not secret_gen_file_stat_result.stat.exists and secret_gen_type == 'jwt_key'
+
+# --- Get value from file ---
+
+- name: Read content of existing file
+  ansible.builtin.slurp:
+    src: '{{ secret_gen_dir }}/{{ secret_gen_name }}'
+  register: secret_gen_content_result
+
+- name: Register secret_gen_value
+  ansible.builtin.set_fact:
+    secret_gen_value: "{{ secret_gen_content_result['content'] | b64decode }}"

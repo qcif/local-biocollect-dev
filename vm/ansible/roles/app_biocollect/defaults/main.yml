@@ -1,0 +1,39 @@
+---
+# settings
+app_biocollect_name: 'app_biocollect'
+app_biocollect_group: 'app'
+app_biocollect_category: 'web'
+app_biocollect_builder: 'gradle'
+app_biocollect_java: '11'
+app_biocollect_ports:
+  http: '{{ specified_ports.biocollect_http_port }}'
+  debug: '{{ specified_ports.biocollect_debug_port }}'
+app_biocollect_links:
+  tests: 'build/reports/tests/'
+
+# paths
+app_biocollect_config_dir: '/data/biocollect/config'
+app_biocollect_helper_path: '{{ ubuntu_profile_dir }}/03-helper-app-biocollect.sh'
+app_biocollect_entry_nginx_path: '{{ nginx_conf_partial_path }}/{{ app_biocollect_name }}.conf'
+app_biocollect_entry_html_path: '{{ web_partial_dir }}/{{ app_biocollect_name }}.html'
+app_biocollect_systemd_service_path: '{{ systemd_services_dir }}/{{ app_biocollect_name }}.service'
+app_biocollect_config_path: '{{ app_biocollect_config_dir }}/biocollect-config.yml'
+app_biocollect_source_dir: '{{ guest_src_dir }}/biocollect'
+
+# Settings that resemble production to test the built artifact.
+app_biocollect_java_opts:
+  - '-Djava.awt.headless=true'
+  - '-XX:+UseG1GC'
+  - '-Xms256m'
+  - '-Xmx1g'
+  - '-XX:ErrorFile={{ services_dir }}/{{ app_biocollect_name }}_hs_err_pid_%p.log'
+  - '-Dlog4j2.formatMsgNoLookups=true'
+  - '-Dlogging.config={{ logback_config_path }}'
+
+app_biocollect_env_vars:
+  - key: 'SPRING_CONFIG_LOCATION'
+    value: 'file:{{ app_biocollect_source_dir }}/grails-app/conf/application.groovy,file:{{ app_biocollect_config_path }}'
+  - key: 'LOG4J_FORMAT_MSG_NO_LOOKUPS'
+    value: 'true'
+  - key: 'LOG_DIR'
+    value: '{{ log_dir }}'

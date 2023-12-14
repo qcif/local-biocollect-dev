@@ -1,0 +1,93 @@
+---
+
+- name: Create directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'directory'
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rwx,g=rx,o=rx'
+  loop:
+    - '{{ app_biocollect_config_dir }}'
+
+- name: Template the bash functions file
+  ansible.builtin.template:
+    src: 'helpers.sh'
+    dest: '{{ app_biocollect_helper_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ app_biocollect_name }}'
+    entry_java: '{{ app_biocollect_java }}'
+    entry_builder: '{{app_biocollect_builder }}'
+    entry_working_dir: '{{ app_biocollect_source_dir }}'
+    entry_java_opts: '{{ app_biocollect_java_opts }}'
+    entry_env_vars: '{{ app_biocollect_env_vars }}'
+    entry_java_artifact_name: 'build/libs/biocollect-*-exec.war'
+    entry_is_service: true
+
+- name: Template the nginx conf
+  ansible.builtin.template:
+    src: 'entry-nginx.conf'
+    dest: '{{ app_biocollect_entry_nginx_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ app_biocollect_name }}'
+    entry_ports: '{{ app_biocollect_ports }}'
+    entry_working_dir: '{{ app_biocollect_source_dir }}'
+
+- name: Template the nginx html
+  ansible.builtin.template:
+    src: 'entry-index.html'
+    dest: '{{ app_biocollect_entry_html_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_group: '{{ app_biocollect_group }}'
+    entry_category: '{{ app_biocollect_category }}'
+    entry_name: '{{ app_biocollect_name }}'
+    entry_ports: '{{ app_biocollect_ports }}'
+    entry_links: '{{ app_biocollect_links }}'
+
+- name: Template the systemd unit file
+  ansible.builtin.template:
+    src: 'app-systemd.service'
+    dest: '{{ app_biocollect_systemd_service_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  notify:
+    - Systemd daemon reload
+  vars:
+    entry_name: '{{ app_biocollect_name }}'
+    entry_java: '{{ app_biocollect_java }}'
+    entry_config_path: '{{ app_biocollect_config_path }}'
+    entry_working_dir: '{{ app_biocollect_source_dir }}'
+    entry_builder: '{{app_biocollect_builder }}'
+    entry_jvm_args:
+      - '-Dspring.output.ansi.enabled=never'
+      - '-Dfile.encoding=UTF-8'
+      - '-Xmx1000M'
+      - '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ specified_ports.biocollect_debug_port }}'
+
+- name: Template the config file
+  ansible.builtin.template:
+    src: 'application.yml'
+    dest: '{{ app_biocollect_config_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'

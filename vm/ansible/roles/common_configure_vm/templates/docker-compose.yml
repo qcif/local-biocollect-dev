@@ -1,0 +1,197 @@
+version: '3.9'
+
+# {{ ansible_managed }}
+
+# ports are in the format HOST:CONTAINER
+
+# service volumes have a short syntax which uses the generic [SOURCE:]TARGET[:MODE] format,
+# where SOURCE can be either a host path or volume name.
+# TARGET is the container path where the volume is mounted.
+# Standard modes are ro for read-only and rw for read-write (default).
+
+volumes:
+  mongo_data:
+  mysql_data:
+  elasticsearch_data:
+
+services:
+  # Service for creating pdfs.
+  # https://gotenberg.dev/docs/configuration
+  # https://gotenberg.dev/docs/getting-started/installation#modules-configuration
+  pdf_service:
+    container_name: 'pdf_service'
+    image: 'gotenberg/gotenberg:{{ specified_versions.gotenberg }}'
+    ports:
+      - '{{ specified_ports.pdf_service_port }}:{{ specified_ports.pdf_service_port }}'
+    expose:
+      - '{{ specified_ports.pdf_service_port }}'
+    command:
+      - "gotenberg"
+      - "--api-timeout=60s"
+      - "--uno-listener-restart-threshold=0"
+      - "--api-port={{ specified_ports.pdf_service_port }}"
+    restart: 'no'
+    logging:
+      driver: 'journald'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  # Service to allow testing email sending.
+  mail_service:
+    container_name: 'mail_service'
+    image: 'maildev/maildev:{{ specified_versions.maildev }}'
+    ports:
+      - '{{ specified_ports.mail_service_http_port }}:{{ specified_ports.mail_service_http_port }}'
+      - '{{ specified_ports.mail_service_smtp_port }}:{{ specified_ports.mail_service_smtp_port }}'
+    expose:
+      - '{{ specified_ports.mail_service_http_port }}'
+      - '{{ specified_ports.mail_service_smtp_port }}'
+    restart: 'no'
+    logging:
+      driver: 'journald'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  # Service to allow testing S3-compatible interactions.
+  objectstore_service:
+    container_name: 'objectstore_service'
+    image: 'minio/minio:{{ specified_versions.minio }}'
+    ports:
+      - '{{ specified_ports.objectstore_service_main_port }}:{{ specified_ports.objectstore_service_main_port }}'
+      - '{{ specified_ports.objectstore_service_console_port }}:{{ specified_ports.objectstore_service_console_port }}'
+    expose:
+      - '{{ specified_ports.objectstore_service_main_port }}'
+      - '{{ specified_ports.objectstore_service_console_port }}'
+    command: 'server /data --console-address ":{{ specified_ports.objectstore_service_console_port }}"'
+    environment:
+      MINIO_ROOT_USER: '{{ objectstore_service_username }}'
+      MINIO_ROOT_PASSWORD: '{{ objectstore_service_password }}'
+      MINIO_SERVER_URL: '{{ web_base_url }}/objectstore-service'
+      MINIO_BROWSER_REDIRECT_URL: '{{ web_base_url }}/objectstore-ui-service'
+    restart: 'no'
+    logging:
+      driver: 'journald'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  db_ui_service:
+    container_name: 'db_ui_service'
+    image: 'adminer:latest'
+    ports:
+      - '{{ specified_ports.db_ui_service_http_port }}:{{ specified_ports.db_ui_service_http_port }}'
+    expose:
+      - '{{ specified_ports.db_ui_service_http_port }}'
+    restart: 'no'
+    environment:
+      ADMINER_DESIGN: 'pepa-linha-dark'
+    logging:
+      driver: 'journald'
+    depends_on:
+      - mysql_service
+      - elasticsearch_service
+
+  mongo_ui_service:
+    container_name: 'mongo_ui_service'
+    image: 'mongo-express:latest'
+    ports:
+      - '{{ specified_ports.mongo_ui_service_http_port }}:{{ specified_ports.mongo_ui_service_http_port }}'
+    expose:
+      - '{{ specified_ports.mongo_ui_service_http_port }}'
+    restart: 'no'
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: '{{ mongo_service_root_username }}'
+      ME_CONFIG_BASICAUTH_PASSWORD: '{{ mongo_service_root_password}}'
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: 'true'
+      ME_CONFIG_MONGODB_ADMINUSERNAME: '{{ mongo_service_root_username }}'
+      ME_CONFIG_MONGODB_ADMINPASSWORD: '{{ mongo_service_root_password | urlencode }}'
+      ME_CONFIG_MONGODB_SERVER: 'mongo_service'
+      ME_CONFIG_MONGODB_PORT: '{{ specified_ports.mongo_service_port }}'
+      ME_CONFIG_MONGODB_AUTH_DATABASE: '{{ mongo_service_auth_database }}'
+      ME_CONFIG_MONGODB_AUTH_USERNAME: '{{ mongo_service_root_username }}'
+      ME_CONFIG_MONGODB_AUTH_PASSWORD: '{{ mongo_service_root_password }}'
+      ME_CONFIG_SITE_BASEURL: '/mongo-ui-service/'
+      ME_CONFIG_SITE_COOKIESECRET: '{{ mongo_ui_service_site_cookie_secret }}'
+      ME_CONFIG_SITE_SESSIONSECRET: '{{ mongo_ui_service_site_session_secret }}'
+      ME_CONFIG_SITE_SSL_ENABLED: 'false'
+    logging:
+      driver: 'journald'
+    depends_on:
+      - mongo_service
+
+  # mongo
+  mongo_service:
+    container_name: 'mongo_service'
+    image: 'mongo:{{ specified_versions.mongo }}'
+    ports:
+      - '{{ specified_ports.mongo_service_port }}:{{ specified_ports.mongo_service_port }}'
+    expose:
+      - '{{ specified_ports.mongo_service_port }}'
+    environment:
+      MONGO_INITDB_DATABASE: '{{ mongo_service_auth_database }}'
+      MONGO_INITDB_ROOT_USERNAME: '{{ mongo_service_root_username }}'
+      MONGO_INITDB_ROOT_PASSWORD: '{{ mongo_service_root_password }}'
+    volumes:
+      - 'mongo_data:/data/db'
+      - '{{ guest_src_dir }}:/opt/src'
+    restart: 'no'
+    logging:
+      driver: 'journald'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  # mysql
+  mysql_service:
+    container_name: 'mysql_service'
+    image: 'mysql:{{ specified_versions.mysql }}'
+    ports:
+      - '{{ specified_ports.mysql_service_port }}:{{ specified_ports.mysql_service_port }}'
+    expose:
+      - '{{ specified_ports.mysql_service_port }}'
+    environment:
+      MYSQL_ROOT_PASSWORD: '{{ mysql_service_root_password }}'
+    volumes:
+      - type: bind  # use a bind volume to mount a file properly
+        source: '{{ mysql_service_entrypoint_path }}'
+        target: '/docker-entrypoint-initdb.d/update-root-host.sql'
+        read_only: true
+      - 'mysql_data:/var/lib/mysql'
+      - '{{ guest_src_dir }}:/opt/src'
+    restart: 'no'
+    logging:
+      driver: 'journald'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  # elasticsearch
+  elasticsearch_service:
+    container_name: 'elasticsearch_service'
+    image: 'elasticsearch:{{ specified_versions.elasticsearch }}'
+    ports:
+      - '{{ specified_ports.elasticsearch_service_port }}:{{ specified_ports.elasticsearch_service_port }}'
+    expose:
+      - '{{ specified_ports.elasticsearch_service_port }}'
+    environment:
+      'discovery.type': 'single-node'
+      'xpack.security.enabled': 'true'
+      ELASTIC_PASSWORD: '{{ elasticsearch_service_root_password }}'
+      'path.data': '/usr/share/elasticsearch/data'
+      'http.port': '{{ specified_ports.elasticsearch_service_port }}'
+      'http.cors.enabled': 'true'
+      'http.cors.allow-origin': 'http://{{ local_host }}:{{ specified_ports.web_service_port }},http://{{ web_base_host }}:{{ specified_ports.web_service_port }},http://db-ui-service:{{ specified_ports.web_service_port }},http://db_ui_service:{{ specified_ports.web_service_port }},http://{{ local_host }}:{{ specified_ports.elasticsearch_service_port }},http://{{ web_base_host }}:{{ specified_ports.elasticsearch_service_port }},http://db-ui-service:{{ specified_ports.elasticsearch_service_port }},http://db_ui_service:{{ specified_ports.elasticsearch_service_port }}'
+      'http.cors.allow-headers': 'X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization'
+      'http.cors.allow-credentials': 'true'
+      ES_JAVA_OPTS: '-Xss1M -Xms16M -Xmx256M -XX:MetaspaceSize=20M -XX:MaxMetaspaceSize=180M -XX:CompressedClassSpaceSize=45M -XX:ReservedCodeCacheSize=20M'
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - 'elasticsearch_data:/usr/share/elasticsearch/data'
+      - '{{ guest_src_dir }}:/opt/src'
+    restart: 'no'
+    logging:
+      driver: 'journald'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+

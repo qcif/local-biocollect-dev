@@ -1,0 +1,120 @@
+---
+
+- name: Create directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'directory'
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rwx,g=rx,o=rx'
+  loop:
+    - '{{ app_ecodata_config_dir }}'
+
+- name: Template the bash functions file
+  ansible.builtin.template:
+    src: 'helpers.sh'
+    dest: '{{ app_ecodata_helper_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ app_ecodata_name }}'
+    entry_java: '{{ app_ecodata_java }}'
+    entry_builder: '{{app_ecodata_builder }}'
+    entry_working_dir: '{{ app_ecodata_source_dir }}'
+    entry_java_opts: '{{ app_ecodata_java_opts }}'
+    entry_env_vars: '{{ app_ecodata_env_vars }}'
+    entry_java_artifact_name: 'build/libs/ecodata-*-exec.jar'
+    entry_is_service: true
+
+- name: Template the nginx conf
+  ansible.builtin.template:
+    src: 'entry-nginx.conf'
+    dest: '{{ app_ecodata_entry_nginx_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ app_ecodata_name }}'
+    entry_ports: '{{ app_ecodata_ports }}'
+    entry_working_dir: '{{ app_ecodata_source_dir }}'
+
+- name: Template the nginx html
+  ansible.builtin.template:
+    src: 'entry-index.html'
+    dest: '{{ app_ecodata_entry_html_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_group: '{{ app_ecodata_group }}'
+    entry_category: '{{ app_ecodata_category }}'
+    entry_name: '{{ app_ecodata_name }}'
+    entry_ports: '{{ app_ecodata_ports }}'
+    entry_links: '{{ app_ecodata_links }}'
+
+- name: Template the systemd unit file
+  ansible.builtin.template:
+    src: 'app-systemd.service'
+    dest: '{{ app_ecodata_systemd_service_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  notify:
+    - Systemd daemon reload
+  vars:
+    entry_name: '{{ app_ecodata_name }}'
+    entry_java: '{{ app_ecodata_java }}'
+    entry_config_path: '{{ app_ecodata_config_path }}'
+    entry_working_dir: '{{ app_ecodata_source_dir }}'
+    entry_builder: '{{app_ecodata_builder }}'
+    entry_jvm_args:
+      - '-Dspring.output.ansi.enabled=never'
+      - '-Dfile.encoding=UTF-8'
+      - '-Xmx1500M'
+      - '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ specified_ports.ecodata_debug_port }}'
+
+- name: Template the config file
+  ansible.builtin.template:
+    src: 'application.yml'
+    dest: '{{ app_ecodata_config_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Ensure mongodb users exist and can access mongodb databases
+  community.mongodb.mongodb_user:
+    login_database: '{{ mongo_service_auth_database }}'
+    login_host: '{{ local_host }}'
+    login_password: "{{ mongo_service_root_password }}"
+    login_port: '{{ specified_ports.mongo_service_port }}'
+    login_user: '{{ mongo_service_root_username }}'
+    auth_mechanism: '{{ mongo_service_auth_mechanism }}'
+    database: '{{ mongo_service_auth_database }}'
+    name: '{{ item.user }}'
+    password: "{{ item.pass }}"
+    roles: '{{ item.roles }}'
+    state: present
+  loop:
+    - database: "{{ app_ecodata_db_main_database }}"
+      user: "{{ app_ecodata_db_main_username }}"
+      pass: "{{ app_ecodata_db_password }}"
+      roles:
+        - db: '{{ app_ecodata_db_main_database }}'
+          role: 'readWrite'
+    - database: "{{ app_ecodata_db_test_database }}"
+      user: "{{ app_ecodata_db_test_username }}"
+      pass: "{{ app_ecodata_db_test_password }}"
+      roles:
+        - db: '{{ app_ecodata_db_test_database }}'
+          role: 'readWrite'

@@ -1,0 +1,53 @@
+---
+
+- name: Create directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'directory'
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rwx,g=rx,o=rx'
+  loop:
+    - '{{ app_theme_html_dir }}'
+
+- name: Template the nginx conf
+  ansible.builtin.template:
+    src: 'nginx-theme.conf'
+    dest: '{{ app_theme_entry_nginx_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Template the nginx html
+  ansible.builtin.template:
+    src: 'entry-index.html'
+    dest: '{{ app_theme_entry_html_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_group: '{{ app_theme_group }}'
+    entry_category: '{{ app_theme_category }}'
+    entry_name: '{{ app_theme_name }}'
+    entry_ports: '{{ app_theme_ports }}'
+    entry_links: '{{ app_theme_links }}'
+
+- name: Template the theme html files
+  ansible.builtin.template:
+    src: '{{ item }}'
+    dest: '{{ app_theme_html_dir }}/{{ item }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  loop:
+    - 'banner.html'
+    - 'footer.html'
+    - 'head.html'
+    - 'menu.html'
+    - 'custom_link.html'

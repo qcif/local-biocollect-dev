@@ -1,0 +1,41 @@
+---
+
+# nginx
+
+- name: Template the nginx conf file
+  ansible.builtin.template:
+    src: 'nginx.conf'
+    dest: '{{ nginx_conf_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Template the nginx proxy headers conf file
+  ansible.builtin.template:
+    src: 'nginx-proxy-headers.conf'
+    dest: '{{ nginx_proxy_headers_conf_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Template the nginx index html file
+  ansible.builtin.template:
+    src: 'index.html'
+    dest: '{{ www_dir }}/index.html'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Enable nginx
+  ansible.builtin.systemd:
+    name: 'nginx'
+    state: 'started'
+    enabled: true
+  notify:
+    - Systemd daemon reload

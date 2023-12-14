@@ -1,0 +1,14 @@
+---
+
+- name: Get content from partial html files
+  ansible.builtin.slurp:
+    src: '{{ item }}'
+  register: partial_html_contents
+  with_fileglob: '{{ web_partial_dir }}/*.html'
+
+#- name: Check content from partial html files
+#  ansible.builtin.debug:
+#    msg: "{{ partial_html_contents }}"
+
+- name: Install and configure nginx
+  ansible.builtin.import_tasks: nginx.yml

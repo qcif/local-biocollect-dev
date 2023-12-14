@@ -1,0 +1,148 @@
+---
+- name: Create directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'directory'
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rwx,g=rx,o=rx'
+  loop:
+    - '{{ app_apikey_config_dir }}'
+
+# --- Template files ---
+
+- name: Template the bash functions file
+  ansible.builtin.template:
+    src: 'helpers.sh'
+    dest: '{{ app_apikey_helper_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ app_apikey_name }}'
+    entry_java: '{{ app_apikey_java }}'
+    entry_builder: '{{app_apikey_builder }}'
+    entry_working_dir: '{{ app_apikey_source_dir }}'
+    entry_java_opts: '{{ app_apikey_java_opts }}'
+    entry_env_vars: '{{ app_apikey_env_vars }}'
+    entry_java_artifact_name: 'build/libs/apikey-*-exec.war'
+    entry_is_service: true
+
+- name: Template the nginx conf
+  ansible.builtin.template:
+    src: 'entry-nginx.conf'
+    dest: '{{ app_apikey_entry_nginx_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ app_apikey_name }}'
+    entry_ports: '{{ app_apikey_ports }}'
+    entry_working_dir: '{{ app_apikey_source_dir }}'
+
+- name: Template the nginx html
+  ansible.builtin.template:
+    src: 'entry-index.html'
+    dest: '{{ app_apikey_entry_html_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_group: '{{ app_apikey_group }}'
+    entry_category: '{{ app_apikey_category }}'
+    entry_name: '{{ app_apikey_name }}'
+    entry_ports: '{{ app_apikey_ports }}'
+    entry_links: '{{ app_apikey_links }}'
+
+- name: Template the systemd unit file
+  ansible.builtin.template:
+    src: 'app-systemd.service'
+    dest: '{{ app_apikey_systemd_service_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  notify:
+    - Systemd daemon reload
+  vars:
+    entry_name: '{{ app_apikey_name }}'
+    entry_java: '{{ app_apikey_java }}'
+    entry_config_path: '{{ app_apikey_config_path }}'
+    entry_working_dir: '{{ app_apikey_source_dir }}'
+    entry_builder: '{{app_apikey_builder }}'
+    entry_jvm_args:
+      - '-Dspring.output.ansi.enabled=never'
+      - '-Dfile.encoding=UTF-8'
+      - '-Xmx500M'
+      - '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ specified_ports.apikey_debug_port }}'
+
+- name: Template the config file
+  ansible.builtin.template:
+    src: 'application.yml'
+    dest: '{{ app_apikey_config_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Ensure mysql databases exist for apikey
+  community.mysql.mysql_db:
+    login_host: '{{ local_host }}'
+    login_port: '{{ specified_ports.mysql_service_port }}'
+    login_user: '{{ mysql_service_root_username }}'
+    login_password: '{{ mysql_service_root_password }}'
+    name: '{{ item }}'
+    state: 'present'
+  loop:
+    - '{{ app_apikey_db_main_database }}'
+    - '{{ app_apikey_db_test_database }}'
+
+- name: Ensure mysql users exist for apikey
+  community.mysql.mysql_user:
+    login_host: '{{ local_host }}'
+    login_port: '{{ specified_ports.mysql_service_port }}'
+    login_user: '{{ mysql_service_root_username }}'
+    login_password: '{{ mysql_service_root_password }}'
+    name: '{{ item.username }}'
+    host: '%'
+    plugin: 'caching_sha2_password'
+    plugin_auth_string: '{{ item.password }}'
+    priv: '{{ item.database }}.*:ALL'
+    column_case_sensitive: true
+    state: 'present'
+  loop:
+    - database: '{{ app_apikey_db_main_database }}'
+      username: '{{ app_apikey_db_main_username }}'
+      password: '{{ app_apikey_db_password }}'
+    - database: '{{ app_apikey_db_test_database }}'
+      username: '{{ app_apikey_db_test_username }}'
+      password: '{{ app_apikey_db_test_password }}'
+
+- name: Ensure mongodb users exist and can access mongodb databases
+  community.mongodb.mongodb_user:
+    login_database: '{{ mongo_service_auth_database }}'
+    login_host: '{{ local_host }}'
+    login_password: "{{ mongo_service_root_password }}"
+    login_port: '{{ specified_ports.mongo_service_port }}'
+    login_user: '{{ mongo_service_root_username }}'
+    auth_mechanism: '{{ mongo_service_auth_mechanism }}'
+    database: '{{ mongo_service_auth_database }}'
+    name: '{{ item.user }}'
+    password: "{{ item.pass }}"
+    roles: '{{ item.roles }}'
+    state: present
+  loop:
+    - database: "{{ app_apikey_db_spring_data_database }}"
+      user: "{{ app_apikey_db_spring_data_username }}"
+      pass: "{{ app_apikey_db_spring_data_password }}"
+      roles:
+        - db: '{{ app_apikey_db_spring_data_database }}'
+          role: 'readWrite'

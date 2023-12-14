@@ -1,0 +1,15 @@
+---
+# settings
+plugin_ala_bootstrap3_name: 'plugin_ala_bootstrap3'
+plugin_ala_bootstrap3_group: 'plugin'
+plugin_ala_bootstrap3_category: 'web'
+plugin_ala_bootstrap3_builder: 'gradle'
+plugin_ala_bootstrap3_java: '8'
+plugin_ala_bootstrap3_ports: {}
+plugin_ala_bootstrap3_links: {}
+
+# paths
+plugin_ala_bootstrap3_helper_path: '{{ ubuntu_profile_dir }}/03-helper-plugin-ala_bootstrap3.sh'
+plugin_ala_bootstrap3_entry_nginx_path: '{{ nginx_conf_partial_path }}/{{ plugin_ala_bootstrap3_name }}.conf'
+plugin_ala_bootstrap3_entry_html_path: '{{ web_partial_dir }}/{{ plugin_ala_bootstrap3_name }}.html'
+plugin_ala_bootstrap3_source_dir: '{{ guest_src_dir }}/ala-bootstrap3'

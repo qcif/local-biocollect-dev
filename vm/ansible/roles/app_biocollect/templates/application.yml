@@ -1,0 +1,51 @@
+---
+
+{{ lookup("ansible.builtin.template", "shared-content.yml") }}
+
+# --- Embedded tomcat ---
+
+server:
+  port: '{{ specified_ports.biocollect_http_port }}'
+  ssl:
+    enabled: false
+  servlet:
+    application-display-name: '{{ app_biocollect_name }}'
+    context-path: '/{{ app_biocollect_name }}'
+
+# --- Auth & CAS ---
+
+security:
+  jwt:
+    enabled: false
+    discoveryUri: '{{ web_base_url }}/{{ app_cas_name }}/oidc/.well-known'
+    fallbackToLegacyBehaviour: true
+  oidc:
+    enabled: false
+    discoveryUri: '{{ web_base_url }}/{{ app_cas_name }}/oidc/.well-known'
+    clientId: "{{ app_biocollect_oidc_client_id }}"
+    secret: "{{ app_biocollect_oidc_secret }}"
+    scope: "openid,profile,email,ala,roles"
+    allowUnsignedIdTokens: true
+  cas:
+    enabled: true
+    appServerName: '{{ web_base_url }}'
+    contextPath: '/{{ app_biocollect_name }}'
+    uriFilterPattern: []
+    uriExclusionFilterPattern: ['/assets/.*','/uploads/.*']
+    <<: *shared_security_cas_defaults
+
+
+# --- Set for the environments to override config embedded in app ---
+
+environments:
+  development:
+    security:
+      <<: *app_security_settings
+
+  test:
+    security:
+      <<: *app_security_settings
+
+  production:
+    security:
+      <<: *app_security_settings

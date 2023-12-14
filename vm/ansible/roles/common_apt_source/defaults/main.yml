@@ -1,0 +1,2 @@
+---
+apt_source_keyrings_dir: '/etc/apt/keyrings'

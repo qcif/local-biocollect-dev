@@ -1,0 +1,15 @@
+---
+# settings
+plugin_ala_map_name: 'plugin_ala_map'
+plugin_ala_map_group: 'plugin'
+plugin_ala_map_category: 'web'
+plugin_ala_map_builder: 'gradle'
+plugin_ala_map_java: '8'
+plugin_ala_map_ports: {}
+plugin_ala_map_links: {}
+
+# paths
+plugin_ala_map_helper_path: '{{ ubuntu_profile_dir }}/03-helper-plugin-ala_map.sh'
+plugin_ala_map_entry_nginx_path: '{{ nginx_conf_partial_path }}/{{ plugin_ala_map_name }}.conf'
+plugin_ala_map_entry_html_path: '{{ web_partial_dir }}/{{ plugin_ala_map_name }}.html'
+plugin_ala_map_source_dir: '{{ guest_src_dir }}/ala-map-plugin'

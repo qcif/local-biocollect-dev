@@ -1,0 +1,80 @@
+---
+
+# docker
+
+- name: Add docker group
+  ansible.builtin.group:
+    name: 'docker'
+    state: 'present'
+
+- name: Add vagrant to docker group
+  ansible.builtin.user:
+    name: 'vagrant'
+    groups: 'docker'
+    append: true
+
+- name: Enable docker service and start at boot
+  ansible.builtin.systemd:
+    name: '{{ item }}'
+    state: 'started'
+    enabled: true
+  loop:
+    - 'docker'
+    - 'containerd'
+  notify:
+    - Systemd daemon reload
+
+# docker compose
+
+- name: Template docker-compose file
+  ansible.builtin.template:
+    src: '{{ docker_compose_file }}'
+    dest: '{{ docker_compose_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Template the mysql docker entrypoint file
+  ansible.builtin.template:
+    src: '{{ mysql_service_entrypoint_file }}'
+    dest: '{{ mysql_service_entrypoint_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rwx,g=rx,o=rx'
+
+- name: Update docker containers
+  ansible.builtin.command:
+    cmd: docker compose -f "{{ docker_compose_path }}" --ansi never pull
+  changed_when: true
+
+- name: Start docker-compose services so can obtain ips
+  ansible.builtin.command:
+    cmd: 'docker compose -f {{ docker_compose_path }} --ansi never up --detach --remove-orphans --quiet-pull --no-color'
+  register: docker_compose_up_result
+  changed_when: "' Creat' in docker_compose_up_result.stdout or ' Start' in docker_compose_up_result.stdout"
+
+- name: Give the docker containers a chance to start up
+  ansible.builtin.wait_for:
+    timeout: 15
+  delegate_to: localhost
+  when: "' Creat' in docker_compose_up_result.stdout or ' Start' in docker_compose_up_result.stdout"
+
+- name: Get all docker container ids
+  ansible.utils.cli_parse:
+    command: 'docker ps -aq'
+    parser:
+      name: ansible.netcommon.native
+      template_path: '{{ role_path }}/templates/{{ ansible_distribution | lower }}_docker_container_ids.yaml'
+    set_fact: docker_container_ids
+
+- name: Get all docker container ip addresses
+  ansible.utils.cli_parse:
+    command: "docker inspect -f {% raw %}'{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'{% endraw %} {% for k, v in docker_container_ids.items() %}{{ v.name }} {% endfor %}"
+    parser:
+      name: ansible.netcommon.native
+      template_path: '{{ role_path }}/templates/{{ ansible_distribution | lower }}_docker_container_ips.yaml'
+    set_fact: docker_container_ips

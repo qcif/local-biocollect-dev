@@ -1,0 +1,52 @@
+
+# -- Shared reference blocks ---
+
+shared_datasource_mysql_defaults: &shared_datasource_mysql_defaults
+  driverClassName: 'com.mysql.cj.jdbc.Driver'
+  dialect: 'org.hibernate.dialect.MySQL8Dialect'
+  pooled: true
+  jmxExport: true
+  type: "com.zaxxer.hikari.HikariDataSource"
+  properties:
+    initialSize: 5
+    maxActive: 50
+    maxIdle: 25
+    minIdle: 5
+    maxWait: 10000
+    minEvictableIdleTimeMillis: 60000
+    timeBetweenEvictionRunsMillis: 60000
+    validationQuery: 'SELECT 1'
+    jmxEnabled: true
+
+shared_security_cas_defaults: &shared_security_cas_defaults
+  readOnlyOfficerRole: 'ROLE_FC_READ_ONLY'
+  alaAdminRole: 'ROLE_ADMIN'
+  officerRole: 'ROLE_FC_OFFICER'
+  adminRole: 'ROLE_FC_ADMIN'
+  casServerName: '{{ web_base_url }}'
+  casServerLoginUrl: '{{ web_base_url }}/{{ app_cas_name }}/login'
+  casServerUrlPrefix: '{{ web_base_url }}/{{ app_cas_name }}'
+  logoutUrl: '{{ web_base_url }}/{{ app_cas_name }}/logout'
+  loginUrl: '{{ web_base_url }}/{{ app_cas_name }}/login'
+
+# For theming, see the version of 'ala-boostrap3' that is used by each app.
+# Then have a look at the page that matches the 'layout' setting.
+# e.g. https://github.com/AtlasOfLivingAustralia/ala-bootstrap3/blob/4.1.0/grails-app/views/layouts/_main.gsp
+
+shared_header_footer_defaults: &shared_header_footer_defaults
+  baseURL: '{{ web_base_url }}/{{ app_theme_name }}'
+  version: '2'
+  excludeApplicationJs: true
+  excludeBootstrapCss: true
+  excludeAlaStylesCss: true
+  excludeBootstrapJs: true
+
+shared_skin_defaults: &shared_skin_defaults
+  layout: "ala-main"
+  fluidLayout: false
+  orgNameLong: "[Org Name Long]"
+  orgNameShort: "[Org Name Short]"
+  orgSupportEmail: '[Org Support Email]'
+  favicon: '{{ web_base_url }}/{{ app_theme_name }}/favicon.ico'
+  homeUrl: '{{ web_base_url }}/{{ app_biocollect_name }}'
+  authorName: '[Author Name]'

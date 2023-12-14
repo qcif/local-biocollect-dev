@@ -1,0 +1,15 @@
+---
+# settings
+plugin_ala_security_project_name: 'plugin_ala_security_project'
+plugin_ala_security_project_group: 'plugin'
+plugin_ala_security_project_category: 'web'
+plugin_ala_security_project_builder: 'gradle'
+plugin_ala_security_project_java: '8'
+plugin_ala_security_project_ports: {}
+plugin_ala_security_project_links: {}
+
+# paths
+plugin_ala_security_project_helper_path: '{{ ubuntu_profile_dir }}/03-helper-plugin-ala_security_project.sh'
+plugin_ala_security_project_entry_nginx_path: '{{ nginx_conf_partial_path }}/{{ plugin_ala_security_project_name }}.conf'
+plugin_ala_security_project_entry_html_path: '{{ web_partial_dir }}/{{ plugin_ala_security_project_name }}.html'
+plugin_ala_security_project_source_dir: '{{ guest_src_dir }}/ala-map-plugin'

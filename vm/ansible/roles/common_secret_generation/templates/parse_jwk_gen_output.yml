@@ -1,0 +1,11 @@
+---
+- example: |
+    Full key:
+    {
+      "kty": "oct",
+      "kid": "1701733796",
+      "k": "NJ7R7N2PL7VX7aVPfJ0xssRhoWRSDxZACmGwmLXgnKD8qs42X9TSsXwwYwJJaZfLMlD1-I2AKR8cqHgo-IvG9Q"
+    }
+  getval: '\s*"k":\s*"(?P<value>[^"]+)"'
+  result:
+    key: "{{ value }}"

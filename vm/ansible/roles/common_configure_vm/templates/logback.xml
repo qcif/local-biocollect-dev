@@ -1,0 +1,21 @@
+<configuration>
+    <conversionRule conversionWord="wex"
+                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+
+    <appender name="CONSOLE_LOG" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%5p [%15.15t] %-40.40logger{39} : %m%n%wex</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Log levels different from the root default -->
+
+    <!-- Disable the Spring Boot configuration dump -->
+    <logger name="org.springframework.boot.autoconfigure.logging" level="INFO"/>
+
+    <!-- Default log level -->
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE_LOG"/>
+    </root>
+
+</configuration>

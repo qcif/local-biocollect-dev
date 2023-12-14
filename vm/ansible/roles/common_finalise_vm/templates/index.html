@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css"
+          integrity="sha512-b2QcS5SsA8tZodcDtGRELiGv5SaKSk1vDHDaQRda0htPYWZ6046lr3kJ5bAAQdpV2mmA/4v0wQF9MyU6/pDIAg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+
+    <title>Local Development for Biocollect</title>
+</head>
+<body>
+<div class="container">
+    <h2>
+        Local Development
+    </h2>
+    <p class="lead">Apps and plugins related to ALA's Biocollect</p>
+
+    <div class="updates"></div>
+
+    <table class="table table-hover table-sm">
+        <thead>
+        <tr>
+            <th scope="col">Group</th>
+            <th scope="col">Category</th>
+            <th scope="col">Name</th>
+            <th scope="col">Links</th>
+            <th scope="col">Ports</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        {% for result in partial_html_contents.results | sort(attribute='item') %}
+        {{ result.content | b64decode }}
+        {% endfor %}
+
+        <tr>
+            <th scope="row">service</th>
+            <th scope="row">files</th>
+            <th scope="row">pdf service</th>
+            <td>
+                <nav class="nav">
+                    <a class="nav-link" href="/pdf-service/health">web</a>
+                </nav>
+            </td>
+            <td>
+                <span class="badge text-bg-secondary">{{ specified_ports.pdf_service_port }}</span>
+            </td>
+        </tr>
+
+        <tr>
+            <th scope="row">service</th>
+            <th scope="row">database</th>
+            <th scope="row">mysql</th>
+            <td>
+                <nav class="nav">
+                    <a class="nav-link"
+                       href="/db-ui-service?server=mysql_service:{{ specified_ports.mysql_service_port }}&username={{ mysql_service_root_username }}&db=mysql">web</a>
+                    <a class="nav-link set-clipboard-on-click" href="#"
+                       data-service-password="{{ mysql_service_root_password }}">copy password</a>
+                </nav>
+            </td>
+            <td>
+                <span class="badge text-bg-secondary">{{ specified_ports.mysql_service_port }}</span>
+                <span class="badge text-bg-secondary">{{ specified_ports.db_ui_service_http_port }}</span>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">service</th>
+            <th scope="row">database</th>
+            <th scope="row">mongo</th>
+            <td>
+                <nav class="nav">
+                    <a class="nav-link" href="/mongo-ui-service">web</a>
+                    <a class="nav-link set-clipboard-on-click" href="#"
+                       data-service-password="{{ mongo_service_root_password }}">copy password</a>
+                </nav>
+            </td>
+            <td>
+                <span class="badge text-bg-secondary">{{ specified_ports.mongo_service_port }}</span>
+                <span class="badge text-bg-secondary">{{ specified_ports.mongo_ui_service_http_port }}</span>
+            </td>
+        </tr>
+        <!--        TODO-->
+        <!--        <tr>-->
+        <!--            <th scope="row">service</th>-->
+        <!--            <th scope="row">database</th>-->
+        <!--            <th scope="row">postgresql</th>-->
+        <!--            <td>-->
+        <!--                <nav class="nav">-->
+        <!--                    <a class="nav-link"-->
+        <!--                       href="/db-ui-service?pgsql=server-name&username=user-name&db=database-name">web</a>-->
+        <!--                    <a class="nav-link set-clipboard-on-click" href="#"-->
+        <!--                       data-service-password="">copy password</a>-->
+        <!--                </nav>-->
+        <!--            </td>-->
+        <!--            <td>-->
+        <!--                <span class="badge text-bg-secondary">{{ specified_ports.db_ui_service_http_port }}</span>-->
+        <!--            </td>-->
+        <!--        </tr>-->
+        <tr>
+            <th scope="row">service</th>
+            <th scope="row">database</th>
+            <th scope="row">elasticsearch</th>
+            <td>
+                <nav class="nav">
+                    <a class="nav-link"
+                       href="/db-ui-service?elastic=elasticsearch_service:{{ specified_ports.elasticsearch_service_port }}&username=elastic&db=">web</a>
+                    <a class="nav-link set-clipboard-on-click" href="#"
+                       data-service-password="{{ elasticsearch_service_root_password }}">copy password</a>
+                </nav>
+            </td>
+            <td>
+                <span class="badge text-bg-secondary">{{ specified_ports.elasticsearch_service_port }}</span>
+                <span class="badge text-bg-secondary">{{ specified_ports.db_ui_service_http_port }}</span>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">service</th>
+            <th scope="row">email</th>
+            <th scope="row">maildev</th>
+            <td>
+                <nav class="nav">
+                    <a class="nav-link" href="/mail-ui-service">web</a>
+                    <a class="nav-link" href="/mail-service">service</a>
+                </nav>
+            </td>
+            <td>
+                <span class="badge text-bg-secondary">{{ specified_ports.mail_service_http_port }}</span>
+                <span class="badge text-bg-secondary">{{ specified_ports.mail_service_smtp_port }}</span>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row">service</th>
+            <th scope="row">files</th>
+            <th scope="row">minio</th>
+            <td>
+                <nav class="nav">
+                    <a class="nav-link" href="/objectstore-ui-service">web</a>
+                    <a class="nav-link" href="/objectstore-service">service</a>
+                </nav>
+            </td>
+            <td>
+                <span class="badge text-bg-secondary">{{ specified_ports.objectstore_service_main_port }}</span>
+                <span class="badge text-bg-secondary">{{ specified_ports.objectstore_service_console_port }}</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"
+        integrity="sha512-X/YkDZyjTf4wyc2Vy16YGCPHwAY8rZJY+POgokZjQB2mhIRFJCckEGc6YyX9eNsPfn0PzThEuNs+uaomE5CO6A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    const elements = document.querySelectorAll("a.set-clipboard-on-click");
+    elements.forEach((element) => {
+        element.addEventListener("click", (event) => {
+            const link = event.target.closest('a[href="#"]');
+
+            if (link) {
+                event.preventDefault();
+            }
+
+            const content = event.target.dataset.servicePassword;
+            navigator.clipboard.writeText(content).then(
+                () => {
+                    console.log('Password copied to clipboard.');
+                },
+                () => {
+                    console.warn('Could not copy password to clipboard.');
+                },
+            );
+        });
+    });
+</script>
+</body>
+</html>

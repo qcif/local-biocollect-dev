@@ -1,0 +1,101 @@
+---
+
+{{ lookup("ansible.builtin.template", "shared-content.yml") }}
+
+# --- Database ---
+
+common_datasource_mongo_main_properties: &common_datasource_mongo_main_properties
+  url: 'mongodb://{{ app_ecodata_db_main_username }}:{{ app_ecodata_db_password }}@{{ web_base_host }}:{{ specified_ports.mongo_service_port }}/{{ app_ecodata_db_main_database }}?{{ mongo_default_uri_options }}'
+  host: '{{ web_base_host }}'
+  port: {{ specified_ports.mongo_service_port }}
+  username: '{{ app_ecodata_db_main_username }}'
+  password: '{{ app_ecodata_db_password }}'
+  databaseName: '{{ app_ecodata_db_main_database }}'
+
+common_datasource_mongo_test_properties: &common_datasource_mongo_test_properties
+  url: 'mongodb://{{ app_ecodata_db_test_username }}:{{ app_ecodata_db_test_password }}@{{ web_base_host }}:{{ specified_ports.mongo_service_port }}/{{ app_ecodata_db_test_database }}?{{ mongo_default_uri_options }}'
+  host: '{{ web_base_host }}'
+  port: {{ specified_ports.mongo_service_port }}
+  username: '{{ app_ecodata_db_test_username }}'
+  password: '{{ app_ecodata_db_test_password }}'
+  databaseName: '{{ app_ecodata_db_test_database }}'
+
+common_database_elasticsearch_main_properties: &common_database_elasticsearch_main_properties
+  host: '{{ web_base_host }}'
+  port: '{{ specified_ports.elasticsearch_service_port }}'
+  # default username for elasticsearch is 'elastic', see https://www.elastic.co/guide/en/elasticsearch/reference/7.16/security-minimal-setup.html#security-create-builtin-users
+  username: 'elastic'
+  password: '{{ elasticsearch_service_root_password }}'
+
+# --- Embedded tomcat ---
+
+server:
+  port: '{{ specified_ports.ecodata_http_port }}'
+  ssl:
+    enabled: false
+  servlet:
+    application-display-name: '{{ app_ecodata_name }}'
+    context-path: '/{{ app_ecodata_name }}'
+
+# --- Auth & CAS ---
+
+security: &app_security_settings
+  jwt:
+    enabled: false
+    discoveryUri: '{{ web_base_url }}/{{ app_cas_name }}/oidc/.well-known'
+    fallbackToLegacyBehaviour: true
+  oidc:
+    enabled: false
+    discoveryUri: '{{ web_base_url }}/{{ app_cas_name }}/oidc/.well-known'
+    clientId: "{{ app_ecodata_oidc_client_id }}"
+    secret: "{{ app_ecodata_oidc_secret }}"
+    scope: "openid,profile,email,ala,roles"
+    allowUnsignedIdTokens: true
+  cas:
+    enabled: true
+    appServerName: '{{ web_base_url }}'
+    contextPath: '/{{ app_ecodata_name }}'
+    <<: *shared_security_cas_defaults
+
+
+# --- Grails settings ---
+
+
+# --- Set for the environments to override config embedded in app ---
+
+environments:
+  development:
+    security:
+      <<: *app_security_settings
+    grails:
+      mongodb:
+        <<: *common_datasource_mongo_main_properties
+    elasticsearch:
+      <<: *common_database_elasticsearch_main_properties
+
+  test:
+    security:
+      <<: *app_security_settings
+    grails:
+      mongodb:
+        <<: *common_datasource_mongo_test_properties
+    elasticsearch:
+      <<: *common_database_elasticsearch_main_properties
+
+  meritfunctionaltest:
+    security:
+      <<: *app_security_settings
+    grails:
+      mongodb:
+        <<: *common_datasource_mongo_test_properties
+    elasticsearch:
+      <<: *common_database_elasticsearch_main_properties
+
+  production:
+    security:
+      <<: *app_security_settings
+    grails:
+      mongodb:
+        <<: *common_datasource_mongo_main_properties
+    elasticsearch:
+      <<: *common_database_elasticsearch_main_properties

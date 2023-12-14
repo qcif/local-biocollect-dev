@@ -1,0 +1,34 @@
+<!-- {{ ansible_managed }} -->
+
+<tr>
+    <th scope="row">{{ entry_group }}</th>
+    <th scope="row">{{ entry_category }}</th>
+    <th scope="row">{{ entry_name }}</th>
+    <td>
+        <nav class="nav">
+
+            {% if 'http' in entry_ports %}
+            <a class="nav-link"
+               href="{{ web_base_url }}/{{ entry_name }}">
+                web
+            </a>
+            <a class="nav-link"
+               href="{{ web_base_url }}/src_{{ entry_name }}/">
+                src
+            </a>
+            {% endif %}
+
+            {% for name, path in entry_links.items() %}
+            <a class="nav-link"
+               href="{{ web_base_url }}/src_{{ entry_name }}/{{ path }}">
+                {{ name }}
+            </a>
+            {% endfor %}
+        </nav>
+    </td>
+    <td>
+        {% for name, port in entry_ports.items() %}
+        <span class="badge text-bg-secondary">{{ port }}</span>
+        {% endfor %}
+    </td>
+</tr>

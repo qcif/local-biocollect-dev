@@ -1,0 +1,134 @@
+---
+
+# --- general settings ---
+
+# dirs
+ubuntu_profile_dir: '/etc/profile.d'
+services_dir: '{{ guest_home_dir }}/services'
+web_partial_dir: '{{ guest_home_dir }}/html.d'
+www_dir: '{{ guest_home_dir }}/www'
+config_dir: '{{ guest_home_dir }}/config'
+log_dir: '{{ guest_home_dir }}/logs'
+
+systemd_services_dir: '/etc/systemd/system'
+
+# shared files
+logback_config_path: '{{ config_dir }}/logback.xml'
+systemd_env_vars_path: '{{ config_dir }}/systemd-env-vars'
+bash_env_vars_path: '{{ ubuntu_profile_dir }}/02-additional-env-vars.sh'
+
+# web
+web_base_host: '127.0.0.1'
+web_base_authority: '{{ web_base_host }}:{{ specified_ports.web_service_port }}'
+web_base_url: 'http://{{ web_base_authority }}'
+
+# nginx
+nginx_conf_partial_path: '/etc/nginx/conf.d'
+nginx_conf_path: '/etc/nginx/nginx.conf'
+nginx_proxy_headers_conf_path: '{{ nginx_conf_partial_path }}/nginx-proxy-headers.conf'
+
+# --- services ---
+
+local_host: 'localhost'
+
+# object store service
+objectstore_service_username: 'object-service-username'
+
+# mongo
+mongo_service_auth_database: 'admin'
+mongo_service_root_username: 'mongodb_admin'
+mongo_service_auth_mechanism: 'SCRAM-SHA-256'
+mongo_default_uri_options: 'ssl=false&authSource={{ mongo_service_auth_database }}&authMechanism={{ mongo_service_auth_mechanism }}&connectTimeoutMS=30000&socketTimeoutMS=30000'
+
+
+# mysql
+mysql_service_root_host: '%'
+mysql_service_root_username: 'root'
+
+mysql_service_entrypoint_file: 'mysql-update-root-host.sql'
+mysql_service_entrypoint_path: '{{ services_dir }}/{{ mysql_service_entrypoint_file }}'
+
+# connection url notes:
+# - https://dev.mysql.com/doc/connectors/en/connector-j-connp-props-security.html
+# - https://dev.mysql.com/doc/connectors/en/connector-j-connp-props-networking.html
+# - allowPublicKeyRetrieval=true is required to allow authenticating using caching_sha2_password auth plugin
+mysql_default_uri_options: 'useSSL=false&requireSSL=false&sslMode=DISABLED&allowPublicKeyRetrieval=true&serverTimezone={{ timezone_name | urlencode }}&zeroDateTimeBehavior=convertToNull&characterEncoding=UTF-8'
+mysql_base_url: 'jdbc:mysql://{{ web_base_host }}:{{ specified_ports.mysql_service_port }}'
+
+# elasticsearch
+
+# --- apt source installs ---
+
+java_8_home_dir: '/usr/lib/jvm/temurin-8-jdk-amd64'
+java_8_java_file: '{{ java_8_home_dir }}/bin/java'
+java_11_home_dir: '/usr/lib/jvm/temurin-11-jdk-amd64'
+java_11_java_file: '{{ java_11_home_dir }}/bin/java'
+
+docker_compose_file: 'docker-compose.yml'
+docker_compose_path: '{{ services_dir }}/{{ docker_compose_file }}'
+
+
+apt_source_items:
+  # docker
+  - name: 'docker'
+    gpg_url: 'https://download.docker.com/linux/ubuntu/gpg'
+    gpg_fingerprint_expected: '9DC858229FC7DD38854AE2D88D81803C0EBFCD88'
+    apt_url: 'https://download.docker.com/linux/ubuntu'
+    apt_arch: '{{ vagrant_architecture | lower }}'
+    apt_dist: '{{ ubuntu_release | lower }}'
+    apt_component: 'stable'
+    packages:
+      - name: 'docker-ce'
+        version: '{{ specified_versions.docker_ce }}'
+        origin: 'Docker'
+      - name: 'docker-ce-cli'
+        version: '{{ specified_versions.docker_ce }}'
+        origin: 'Docker'
+      - name: 'containerd.io'
+        version: '{{ specified_versions.containerd }}'
+        origin: 'Docker'
+      - name: 'docker-compose-plugin'
+        version: '{{ specified_versions.compose }}'
+        origin: 'Docker'
+
+  # nginx
+  - name: 'nginx'
+    gpg_url: 'https://nginx.org/keys/nginx_signing.key'
+    gpg_fingerprint_expected: '573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62'
+    apt_url: 'http://nginx.org/packages/ubuntu'
+    apt_arch: '{{ vagrant_architecture | lower }}'
+    apt_dist: '{{ ubuntu_release | lower }}'
+    apt_component: 'nginx'
+    packages:
+      - name: 'nginx'
+        version: '{{ specified_versions.nginx }}'
+        origin: 'nginx'
+
+  # java
+  - name: 'adoptium'
+    gpg_url: 'https://packages.adoptium.net/artifactory/api/gpg/key/public'
+    gpg_fingerprint_expected: '3B04D753C9050D9A5D343F39843C48A565F8F04B'
+    apt_url: 'https://packages.adoptium.net/artifactory/deb'
+    apt_arch: '{{ vagrant_architecture | lower }}'
+    apt_dist: '{{ ubuntu_release | lower }}'
+    apt_component: 'main'
+    packages:
+      - name: 'temurin-8-jdk'
+        version: '8.*'
+        origin: 'Artifactory'
+      - name: 'temurin-11-jdk'
+        version: '11.*'
+        origin: 'Artifactory'
+
+  # node js
+  - name: 'nodesource'
+    gpg_url: 'https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key'
+    gpg_fingerprint_expected: '6F71F525282841EEDAF851B42F59B5F99B1BE0B4'
+    apt_url: 'https://deb.nodesource.com/node_{{ specified_versions.nodejs }}.x'
+    apt_arch: '{{ vagrant_architecture | lower }}'
+    apt_dist: 'nodistro'
+    apt_component: 'main'
+    packages:
+      - name: 'nodejs'
+        version: '{{ specified_versions.nodejs }}.*'
+        origin: 'nodistro'

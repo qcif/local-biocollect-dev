@@ -1,0 +1,5 @@
+
+# {{ ansible_managed }}
+# {{ apt_source_name }} Ubuntu apt repo
+
+deb [{% if apt_source_ubuntu_apt_arch %}arch={{ apt_source_ubuntu_apt_arch }} {% endif %}signed-by={{ apt_source_ubuntu_gpg_keyring_path }}] {{ apt_source_ubuntu_apt_url }} {{ apt_source_ubuntu_apt_dist }} {{ apt_source_ubuntu_apt_component }}
