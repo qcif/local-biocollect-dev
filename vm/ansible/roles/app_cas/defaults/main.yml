@@ -42,6 +42,8 @@ app_cas_java_opts:
   - '-Dala.password.properties={{ app_cas_config_pwe_path }}'
   - '-XX:ErrorFile={{ services_dir }}/{{ app_cas_name }}_hs_err_pid_%p.log'
   - '-Dlog4j2.formatMsgNoLookups=true'
+  - '-Dspring.output.ansi.enabled=never'
+  - '-Dfile.encoding=UTF-8'
 
 app_cas_env_vars:
   - key: 'SPRING_CONFIG_LOCATION'
@@ -50,3 +52,6 @@ app_cas_env_vars:
     value: 'true'
   - key: 'LOG_DIR'
     value: '{{ log_dir }}'
+  - key: 'LOGGING_DIR'
+    value: '{{ log_dir }}'
+

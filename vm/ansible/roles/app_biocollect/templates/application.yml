@@ -2,6 +2,18 @@
 
 {{ lookup("ansible.builtin.template", "shared-content.yml") }}
 
+# --- Biocollect settings ---
+
+config:
+  temp:
+    dir: '{{ app_biocollect_temp_dir }}'
+bootstrap4:
+  themeDirectory: "/bootstrap4/scss"
+  themeFileName: "styles"
+  themeExtension: "scss"
+  copyFromDir: "bootstrap4"
+  copyToDir: "bootstrap4"
+
 # --- Embedded tomcat ---
 
 server:
@@ -11,10 +23,11 @@ server:
   servlet:
     application-display-name: '{{ app_biocollect_name }}'
     context-path: '/{{ app_biocollect_name }}'
+  serverURL: '{{ web_base_url }}/{{ app_biocollect_name }}'
 
 # --- Auth & CAS ---
 
-security:
+security: &app_security_settings
   jwt:
     enabled: false
     discoveryUri: '{{ web_base_url }}/{{ app_cas_name }}/oidc/.well-known'
@@ -34,6 +47,26 @@ security:
     uriExclusionFilterPattern: ['/assets/.*','/uploads/.*']
     <<: *shared_security_cas_defaults
 
+# --- Grails settings ---
+
+grails:
+  mail:
+    <<: *shared_grails_mail_defaults
+
+# --- Other apps ---
+
+ecodata:
+  baseURL: '{{ web_base_url }}/{{ app_ecodata_name }}'
+merit:
+  baseURL: '{{ app_theme_custom_url }}'
+spatial:
+  baseURL: 'https://spatial.ala.org.au'
+
+# --- External services ---
+
+google:
+  maps:
+    apiKey: 'not-configured'
 
 # --- Set for the environments to override config embedded in app ---
 

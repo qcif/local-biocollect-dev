@@ -138,12 +138,12 @@ ala:
   skin:
     <<: *shared_skin_defaults
     baseUrl: '{{ web_base_url }}/{{ app_theme_name }}'
-    termsUrl: '{{ web_base_url }}/{{ app_theme_name }}/custom_link.html'
+    termsUrl: '{{ app_theme_custom_url }}'
     headerFooterUrl: '{{ web_base_url }}/{{ app_theme_name }}/'
     favIconBaseUrl: '{{ web_base_url }}/{{ app_theme_name }}/img/'
     loginBrandUrl: '{{ web_base_url }}/{{ app_theme_name }}/img/brand-logo.png'
     loginLogo: '{{ web_base_url }}/{{ app_theme_name }}/img/brand-logo.png'
-    bieBaseUrl: '{{ web_base_url }}/{{ app_theme_name }}/custom_link.html'
+    bieBaseUrl: '{{ app_theme_custom_url }}'
     bieSearchPath: '/{{ app_theme_name }}/custom_link.html'
     userDetailsUrl: '{{ web_base_url }}/{{ app_userdetails_name }}'
     resetPasswordUrl: '{{ web_base_url }}/{{ app_userdetails_name }}/registration/forgottenPassword'

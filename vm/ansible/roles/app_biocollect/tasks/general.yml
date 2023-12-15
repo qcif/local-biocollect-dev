@@ -9,6 +9,7 @@
     mode: 'u=rwx,g=rx,o=rx'
   loop:
     - '{{ app_biocollect_config_dir }}'
+    - '{{ app_biocollect_temp_dir }}'
 
 - name: Template the bash functions file
   ansible.builtin.template:
@@ -76,11 +77,9 @@
     entry_config_path: '{{ app_biocollect_config_path }}'
     entry_working_dir: '{{ app_biocollect_source_dir }}'
     entry_builder: '{{app_biocollect_builder }}'
-    entry_jvm_args:
-      - '-Dspring.output.ansi.enabled=never'
-      - '-Dfile.encoding=UTF-8'
-      - '-Xmx1000M'
-      - '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ specified_ports.biocollect_debug_port }}'
+    entry_java_opts: '{{ app_biocollect_java_opts }}'
+    entry_env_vars: '{{ app_biocollect_env_vars }}'
+    entry_debug_port: '{{ specified_ports.biocollect_debug_port }}'
 
 - name: Template the config file
   ansible.builtin.template:

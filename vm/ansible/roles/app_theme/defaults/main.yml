@@ -11,3 +11,6 @@ app_theme_links: {}
 app_theme_html_dir: '{{ www_dir }}/{{ app_theme_name }}'
 app_theme_entry_nginx_path: '{{ nginx_conf_partial_path }}/{{ app_theme_name }}.conf'
 app_theme_entry_html_path: '{{ web_partial_dir }}/{{ app_theme_name }}.html'
+
+# urls
+app_theme_custom_url: '{{ web_base_url }}/{{ app_theme_name }}/custom_link.html'

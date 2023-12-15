@@ -77,11 +77,9 @@
     entry_config_path: '{{ app_apikey_config_path }}'
     entry_working_dir: '{{ app_apikey_source_dir }}'
     entry_builder: '{{app_apikey_builder }}'
-    entry_jvm_args:
-      - '-Dspring.output.ansi.enabled=never'
-      - '-Dfile.encoding=UTF-8'
-      - '-Xmx500M'
-      - '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ specified_ports.apikey_debug_port }}'
+    entry_java_opts: '{{ app_apikey_java_opts }}'
+    entry_env_vars: '{{ app_apikey_env_vars }}'
+    entry_debug_port: '{{ specified_ports.apikey_debug_port }}'
 
 - name: Template the config file
   ansible.builtin.template:

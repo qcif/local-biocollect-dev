@@ -50,3 +50,16 @@ shared_skin_defaults: &shared_skin_defaults
   favicon: '{{ web_base_url }}/{{ app_theme_name }}/favicon.ico'
   homeUrl: '{{ web_base_url }}/{{ app_biocollect_name }}'
   authorName: '[Author Name]'
+
+shared_grails_mail_defaults: &shared_grails_mail_defaults
+  host: '{{ local_host }}'
+  port: '{{ specified_ports.mail_service_smtp_port }}'
+  username: ''
+  password: ''
+  poolSize: 1
+  props:
+    - 'mail.smtp.starttls.enable': 'false'
+    - 'mail.smtp.starttls.required': 'false'
+    - 'mail.smtp.port': '{{ specified_ports.mail_service_smtp_port }}'
+    - 'mail.smtp.auth': 'false'
+    - 'mail.smtp.ssl.protocols': 'TLSv1.2'

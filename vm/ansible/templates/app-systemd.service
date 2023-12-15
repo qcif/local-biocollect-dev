@@ -9,9 +9,13 @@ After=network.target
 Type=simple
 
 Environment="JAVA_HOME={% if entry_java == '8' %}{{ java_8_home_dir }}{% elif entry_java == '11' %}{{ java_11_home_dir }}{% endif %}"
-Environment="SPRING_CONFIG_LOCATION=file:{{ entry_config_path }}"
-Environment="LOGGING_DIR={{ log_dir }}"
-Environment="LOG_DIR={{ log_dir }}"
+
+# {% for entry_env_var in entry_env_vars %}
+
+Environment="{{ entry_env_var.key }}={{ entry_env_var.value }}"
+
+# {% endfor %}
+
 EnvironmentFile={{ systemd_env_vars_path }}
 
 WorkingDirectory={{ entry_working_dir }}
@@ -26,11 +30,11 @@ ExecStart={{ entry_working_dir }}/gradlew \
     --console=plain \
     -Dlogging.config={{ logback_config_path }} \
     bootRun \
-    --args='--spring-boot.run.jvmArguments="{% for entry_jvm_arg in entry_jvm_args %}{{ entry_jvm_arg }} {% endfor %}"'
+    --args='--spring-boot.run.jvmArguments="{% for entry_java_opt in entry_java_opts %}{{ entry_java_opt }} {% endfor %}-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ entry_debug_port }}"'
 
 # {% elif entry_builder == 'maven' %}
 
-Environment="MAVEN_OPTS={% for entry_jvm_arg in entry_jvm_args %}{{ entry_jvm_arg }} {% endfor %}"
+Environment="MAVEN_OPTS={% for entry_java_opt in entry_java_opts %}{{ entry_java_opt }} {% endfor %}-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ entry_debug_port }}"
 
 ExecStartPre=/usr/bin/dos2unix '{{ entry_working_dir }}/mvnw'
 ExecStart={{ entry_working_dir }}/mvnw -Dmaven.plugin.validation=VERBOSE package spring-boot:run -T 5

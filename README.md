@@ -54,7 +54,7 @@ The steps to set up the local code and start the Vagrant VM:
 4. Open a command line and change directory to `biocollect-dev/local-biocollect-dev`.
 5. Start the Vagrant machine `vagrant up --provision`.
 6. SSH into the development machine using `vagrant ssh`.
-7. View the overview of the status of the virtual machine at [the local html page](http://localhost:8880)
+7. View the overview of the status of the virtual machine at [the local dev landing page](http://localhost:8880)
 
 The first run of the ansible provisioning might take a while as it needs to download quite a few dependencies.
 
@@ -70,6 +70,16 @@ There is a way to pass through env vars from your local machine to the vagrant V
 - The values will be obtained from the env vars with the exact same name on your local machine.
 - These env vars will be set when you ssh into the guest using `vagrant ssh`, and will be available to the systemd services that run each app.
 
+To be able to download packages hosted on GitHub Packages, you'll need a [GitHub Personal Access Token (classic)](https://github.com/settings/tokens).
+The token needs at least `read:packages` permission.
+
+Add it to the `.local/additional-env-vars.yml` file:
+
+```yaml
+---
+GITHUB_ACTOR: '<github user name>'
+GITHUB_TOKEN: '<personal access token (classic)>'
+```
 
 ## Usage
 
@@ -87,6 +97,25 @@ While developing, control the app using `dev_(app|plugin)_[name]_service (start|
 Set up a [vagrant synchronisation method](https://developer.hashicorp.com/vagrant/docs/synced-folders) to make it easy
 to work on the code locally
 and have it automatically update in the vagrant VM.
+
+To run biocollect, there is an order to start the apps:
+
+```console
+dev_app_cas_service start
+dev_app_apikey_service start
+dev_app_userdetails_service start
+```
+
+Wait for these apps to be ready. Check using `dev_app_[name]_logs`.
+
+Then start up Ecodata, wait for it to be ready, then start Biocollect.
+
+```console
+dev_app_ecodata_service start
+dev_app_biocollect_service start
+```
+
+You can then view the application websites using the `web` links on [the local dev landing page](http://localhost:8880).
 
 ## Advanced settings
 

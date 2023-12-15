@@ -73,14 +73,11 @@
   vars:
     entry_name: '{{ app_userdetails_name }}'
     entry_java: '{{ app_userdetails_java }}'
-    entry_config_path: '{{ app_userdetails_config_path }}'
     entry_working_dir: '{{ app_userdetails_source_dir }}'
     entry_builder: '{{app_userdetails_builder }}'
-    entry_jvm_args:
-      - '-Dspring.output.ansi.enabled=never'
-      - '-Dfile.encoding=UTF-8'
-      - '-Xmx500M'
-      - '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ specified_ports.userdetails_debug_port }}'
+    entry_java_opts: '{{ app_userdetails_java_opts }}'
+    entry_env_vars: '{{ app_userdetails_env_vars }}'
+    entry_debug_port: '{{ specified_ports.userdetails_debug_port }}'
 
 - name: Template the config file
   ansible.builtin.template:

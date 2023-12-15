@@ -39,6 +39,8 @@ app_apikey_java_opts:
   - '-XX:ErrorFile={{ services_dir }}/{{ app_apikey_name }}_hs_err_pid_%p.log'
   - '-Dlog4j2.formatMsgNoLookups=true'
   - '-Dlogging.config={{ logback_config_path }}'
+  - '-Dspring.output.ansi.enabled=never'
+  - '-Dfile.encoding=UTF-8'
 
 app_apikey_env_vars:
   - key: 'SPRING_CONFIG_LOCATION'
@@ -46,4 +48,6 @@ app_apikey_env_vars:
   - key: 'LOG4J_FORMAT_MSG_NO_LOOKUPS'
     value: 'true'
   - key: 'LOG_DIR'
+    value: '{{ log_dir }}'
+  - key: 'LOGGING_DIR'
     value: '{{ log_dir }}'
