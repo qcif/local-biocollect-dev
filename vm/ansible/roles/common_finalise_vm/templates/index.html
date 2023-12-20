@@ -17,9 +17,13 @@
     <h2>
         Local Development
     </h2>
-    <p class="lead">Apps and plugins related to ALA's Biocollect</p>
-
-    <div class="updates"></div>
+    <p class="lead">
+        Apps and plugins related to ALA's Biocollect
+        <small>(last updated at <span id="last_updated"></span>)</small>
+    </p>
+    <div>
+        <ol id="status_updates"></ol>
+    </div>
 
     <table class="table table-hover table-sm">
         <thead>
@@ -29,6 +33,7 @@
             <th scope="col">Name</th>
             <th scope="col">Links</th>
             <th scope="col">Ports</th>
+            <th scope="col">Status</th>
         </tr>
         </thead>
         <tbody>
@@ -49,6 +54,7 @@
             <td>
                 <span class="badge text-bg-secondary">{{ specified_ports.pdf_service_port }}</span>
             </td>
+            <td></td>
         </tr>
 
         <tr>
@@ -67,6 +73,7 @@
                 <span class="badge text-bg-secondary">{{ specified_ports.mysql_service_port }}</span>
                 <span class="badge text-bg-secondary">{{ specified_ports.db_ui_service_http_port }}</span>
             </td>
+            <td></td>
         </tr>
         <tr>
             <th scope="row">service</th>
@@ -84,23 +91,6 @@
                 <span class="badge text-bg-secondary">{{ specified_ports.mongo_ui_service_http_port }}</span>
             </td>
         </tr>
-        <!--        TODO-->
-        <!--        <tr>-->
-        <!--            <th scope="row">service</th>-->
-        <!--            <th scope="row">database</th>-->
-        <!--            <th scope="row">postgresql</th>-->
-        <!--            <td>-->
-        <!--                <nav class="nav">-->
-        <!--                    <a class="nav-link"-->
-        <!--                       href="/db-ui-service?pgsql=server-name&username=user-name&db=database-name">web</a>-->
-        <!--                    <a class="nav-link set-clipboard-on-click" href="#"-->
-        <!--                       data-service-password="">copy password</a>-->
-        <!--                </nav>-->
-        <!--            </td>-->
-        <!--            <td>-->
-        <!--                <span class="badge text-bg-secondary">{{ specified_ports.db_ui_service_http_port }}</span>-->
-        <!--            </td>-->
-        <!--        </tr>-->
         <tr>
             <th scope="row">service</th>
             <th scope="row">database</th>
@@ -117,6 +107,7 @@
                 <span class="badge text-bg-secondary">{{ specified_ports.elasticsearch_service_port }}</span>
                 <span class="badge text-bg-secondary">{{ specified_ports.db_ui_service_http_port }}</span>
             </td>
+            <td></td>
         </tr>
         <tr>
             <th scope="row">service</th>
@@ -132,6 +123,7 @@
                 <span class="badge text-bg-secondary">{{ specified_ports.mail_service_http_port }}</span>
                 <span class="badge text-bg-secondary">{{ specified_ports.mail_service_smtp_port }}</span>
             </td>
+            <td></td>
         </tr>
         <tr>
             <th scope="row">service</th>
@@ -147,6 +139,7 @@
                 <span class="badge text-bg-secondary">{{ specified_ports.objectstore_service_main_port }}</span>
                 <span class="badge text-bg-secondary">{{ specified_ports.objectstore_service_console_port }}</span>
             </td>
+            <td></td>
         </tr>
         </tbody>
     </table>
@@ -158,6 +151,7 @@
         integrity="sha512-X/YkDZyjTf4wyc2Vy16YGCPHwAY8rZJY+POgokZjQB2mhIRFJCckEGc6YyX9eNsPfn0PzThEuNs+uaomE5CO6A=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
+    // to copy passwords on click
     const elements = document.querySelectorAll("a.set-clipboard-on-click");
     elements.forEach((element) => {
         element.addEventListener("click", (event) => {
@@ -170,7 +164,7 @@
             const content = event.target.dataset.servicePassword;
             navigator.clipboard.writeText(content).then(
                 () => {
-                    console.log('Password copied to clipboard.');
+                    console.info('Password copied to clipboard.');
                 },
                 () => {
                     console.warn('Could not copy password to clipboard.');
@@ -178,6 +172,66 @@
             );
         });
     });
+
+    // to update the status of the application services
+    const evtSource = new EventSource("/sse");
+    evtSource.addEventListener("status_update", (event) => {
+        console.debug("EventSource event received");
+        const data = JSON.parse(event.data);
+
+        const time = data.time;
+        const lastUpdated = document.getElementById('last_updated');
+        lastUpdated.textContent = time;
+
+        data.services.forEach(item => {
+            const name = item.name;
+            const active_state = item.active_state;
+            const sub_state = item.sub_state;
+            const processes = item.processes;
+            const td = document.querySelector(`td[data-group='app'][data-name='${name}']`);
+
+            // up
+            const isDown = active_state === "inactive" && sub_state === "dead";
+            const textUp = "running";
+            const iconUp = "&#10004;&#65039;"
+
+            // down
+            const isUp = active_state === "active" && sub_state === "running";
+            const textDown = "stopped";
+            const iconDown = "&#10060;"
+
+            // unknown
+            const textUnknown = "unknown";
+            const iconUnknown = "&#10068;"
+
+            let content = '';
+            if (isUp) {
+                content = `${textUp} ${iconUp}`;
+            } else if (isDown) {
+                content = `${textDown} ${iconDown}`;
+            } else {
+                content = `${textUnknown} ${iconUnknown}`;
+            }
+
+            const ports = [];
+            processes.forEach(process => {
+                process.ports.forEach(port => {
+                    if (!ports.includes(port)) {
+                        ports.push(port);
+                    }
+                })
+            });
+
+            if (ports.length > 0) {
+                const availablePorts = ports.sort().join(',');
+                content += ' ports ' + availablePorts;
+            }
+            td.innerHTML = content;
+        });
+    });
+    evtSource.onerror = (err) => {
+        console.error("EventSource failed:", err);
+    };
 </script>
 </body>
 </html>

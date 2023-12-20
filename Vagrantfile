@@ -95,6 +95,7 @@ Vagrant.configure("2") do |config|
     'alerts_http_port': 8905,
     'alerts_debug_port': 5905,
     'theme_http_port': 8906,
+    'dashboard_http_port': 8907,
   }
 
   # This refers to the Ubuntu release code name.

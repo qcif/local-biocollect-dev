@@ -132,3 +132,9 @@ apt_source_items:
       - name: 'nodejs'
         version: '{{ specified_versions.nodejs }}.*'
         origin: 'nodistro'
+
+# --- dashboard app ---
+
+app_dashboard_python_venv_dir: '{{ guest_home_dir }}/dashboard-venv'
+app_dashboard_service_path: '{{ services_dir }}/status_dashboard.py'
+app_dashboard_systemd_service_path: '{{ systemd_services_dir }}/status-dashboard.service'

@@ -1,0 +1,54 @@
+---
+- name: Create Python 3 venv for status dashboard
+  become_user: 'vagrant'
+  ansible.builtin.command:
+    cmd: "python{{ specified_versions.python }} -m venv {{ app_dashboard_python_venv_dir }}"
+  args:
+    creates: "{{ app_dashboard_python_venv_dir }}"
+
+- name: Update pip in Python venv for status dashboard
+  become_user: 'vagrant'
+  ansible.builtin.command:
+    cmd: "{{ app_dashboard_python_venv_dir }}/bin/python -m pip install -U pip"
+  register: app_dashboard_python_pip_install_result
+  changed_when: "'Successfully installed pip' in app_dashboard_python_pip_install_result.stdout"
+
+- name: Install status dashboard
+  become_user: 'vagrant'
+  ansible.builtin.pip:
+    executable: '{{ app_dashboard_python_venv_dir }}/bin/pip'
+    name:
+      - "quart==0.19.4"
+      - "pystemd==0.13.2"
+      - "psutil==5.9.7"
+    state: present
+
+- name: Template the script for status dashboard
+  ansible.builtin.template:
+    src: 'status_dashboard.py'
+    dest: '{{ app_dashboard_service_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rwx,g=rx,o=rx'
+
+- name: Template the systemd unit file for status dashboard
+  ansible.builtin.template:
+    src: 'status-dashboard.service'
+    dest: '{{ app_dashboard_systemd_service_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  notify:
+    - Systemd daemon reload
+
+- name: Enable the systemd service for status dashboard
+  ansible.builtin.systemd:
+    name: 'status-dashboard.service'
+    state: 'started'
+    enabled: true
+  notify:
+    - Systemd daemon reload

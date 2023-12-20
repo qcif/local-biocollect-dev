@@ -8,3 +8,6 @@
 
 - name: Install and configure docker
   ansible.builtin.import_tasks: docker.yml
+
+- name: Install and configure local web app for dashboard
+  ansible.builtin.import_tasks: dashboard.yml

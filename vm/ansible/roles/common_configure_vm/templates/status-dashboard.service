@@ -1,0 +1,18 @@
+
+# {{ ansible_managed }}
+
+[Unit]
+Description=Status dashboard server sent event service
+After=network.target
+
+[Service]
+Type=simple
+
+WorkingDirectory={{ services_dir }}
+
+ExecStart={{ app_dashboard_python_venv_dir }}/bin/python {{ app_dashboard_service_path }}
+User=vagrant
+Group=vagrant
+
+[Install]
+WantedBy=multi-user.target
