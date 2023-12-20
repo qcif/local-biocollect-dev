@@ -24,7 +24,8 @@
     entry_java: '{{ app_userdetails_java }}'
     entry_builder: '{{app_userdetails_builder }}'
     entry_working_dir: '{{ app_userdetails_source_dir }}'
-    entry_java_opts: '{{ app_userdetails_java_opts }}'
+    entry_java_sys_props: '{{ app_userdetails_java_sys_props }}'
+    entry_java_jvm_opts: '{{ app_userdetails_java_jvm_opts }}'
     entry_env_vars: '{{ app_userdetails_env_vars }}'
     entry_java_artifact_name: 'build/libs/userdetails-*-exec.war'
     entry_is_service: true
@@ -75,7 +76,8 @@
     entry_java: '{{ app_userdetails_java }}'
     entry_working_dir: '{{ app_userdetails_source_dir }}'
     entry_builder: '{{app_userdetails_builder }}'
-    entry_java_opts: '{{ app_userdetails_java_opts }}'
+    entry_java_sys_props: '{{ app_userdetails_java_sys_props }}'
+    entry_java_jvm_opts: '{{ app_userdetails_java_jvm_opts }}'
     entry_env_vars: '{{ app_userdetails_env_vars }}'
     entry_debug_port: '{{ specified_ports.userdetails_debug_port }}'
 

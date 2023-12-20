@@ -24,7 +24,8 @@
     entry_java: '{{ app_ecodata_java }}'
     entry_builder: '{{app_ecodata_builder }}'
     entry_working_dir: '{{ app_ecodata_source_dir }}'
-    entry_java_opts: '{{ app_ecodata_java_opts }}'
+    entry_java_sys_props: '{{ app_ecodata_java_sys_props }}'
+    entry_java_jvm_opts: '{{ app_ecodata_java_jvm_opts }}'
     entry_env_vars: '{{ app_ecodata_env_vars }}'
     entry_java_artifact_name: 'build/libs/ecodata-*-exec.jar'
     entry_is_service: true
@@ -76,7 +77,8 @@
     entry_config_path: '{{ app_ecodata_config_path }}'
     entry_working_dir: '{{ app_ecodata_source_dir }}'
     entry_builder: '{{app_ecodata_builder }}'
-    entry_java_opts: '{{ app_ecodata_java_opts }}'
+    entry_java_sys_props: '{{ app_ecodata_java_sys_props }}'
+    entry_java_jvm_opts: '{{ app_ecodata_java_jvm_opts }}'
     entry_env_vars: '{{ app_ecodata_env_vars }}'
     entry_debug_port: '{{ specified_ports.ecodata_debug_port }}'
 

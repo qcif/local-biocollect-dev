@@ -70,7 +70,7 @@ dev_{{ entry_name }}_maven clean -T 5
 }
 
 function dev_{{ entry_name }}_assemble() {
-dev_{{ entry_name }}_maven cpackage -T 5
+dev_{{ entry_name }}_maven package -T 5
 }
 
 function dev_{{ entry_name }}_test() {
@@ -108,13 +108,14 @@ echo "Unknown source builder {{ entry_builder }}."
 {% endif %}
 
 
-# {% if entry_env_vars is defined and entry_env_vars and entry_java_opts is defined and entry_java_opts and entry_java_artifact_name is defined and entry_java_artifact_name %}
+# {% if entry_java_artifact_name is defined and entry_java_artifact_name %}
 
 # test the built artifact
 function dev_{{ entry_name }}_artifact_run() {
 {% for entry_env_var in entry_env_vars %} {{ entry_env_var.key }}="{{ entry_env_var.value }}"{% endfor %} \
   {% if entry_java == '8' %}{{ java_8_java_file }}{% elif entry_java == '11' %}{{ java_11_java_file }}{% else %}echo "Unknown java '{{ entry_java }}'.";exit 1;{% endif %} \
-  {% for entry_java_opt in entry_java_opts %} {{ entry_java_opt }}{% endfor %} \
+  {% if entry_java_sys_props is defined and entry_java_sys_props %}{% for entry_java_sys_prop in entry_java_sys_props %} -D{{ entry_java_sys_prop }}{% endfor %} \{% endif %}
+  {% if entry_java_jvm_opts is defined and entry_java_jvm_opts %}{% for entry_java_jvm_opt in entry_java_jvm_opts %} -{{ entry_java_jvm_opt }}{% endfor %} \{% endif %}
   -jar {{ entry_working_dir }}/{{ entry_java_artifact_name }}
 }
 

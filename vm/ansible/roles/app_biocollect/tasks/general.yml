@@ -25,7 +25,8 @@
     entry_java: '{{ app_biocollect_java }}'
     entry_builder: '{{app_biocollect_builder }}'
     entry_working_dir: '{{ app_biocollect_source_dir }}'
-    entry_java_opts: '{{ app_biocollect_java_opts }}'
+    entry_java_sys_props: '{{ app_biocollect_java_sys_props }}'
+    entry_java_jvm_opts: '{{ app_biocollect_java_jvm_opts }}'
     entry_env_vars: '{{ app_biocollect_env_vars }}'
     entry_java_artifact_name: 'build/libs/biocollect-*-exec.war'
     entry_is_service: true
@@ -77,7 +78,8 @@
     entry_config_path: '{{ app_biocollect_config_path }}'
     entry_working_dir: '{{ app_biocollect_source_dir }}'
     entry_builder: '{{app_biocollect_builder }}'
-    entry_java_opts: '{{ app_biocollect_java_opts }}'
+    entry_java_sys_props: '{{ app_biocollect_java_sys_props }}'
+    entry_java_jvm_opts: '{{ app_biocollect_java_jvm_opts }}'
     entry_env_vars: '{{ app_biocollect_env_vars }}'
     entry_debug_port: '{{ specified_ports.biocollect_debug_port }}'
 

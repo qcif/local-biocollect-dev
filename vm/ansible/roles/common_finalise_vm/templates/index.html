@@ -191,36 +191,31 @@
             const processes = item.processes;
             const td = document.querySelector(`td[data-group='app'][data-name='${name}']`);
 
-            // up
-            const isDown = active_state === "inactive" && sub_state === "dead";
-            const textUp = "running";
-            const iconUp = "&#10004;&#65039;"
+            // icons
+            const iconCheck = "&#10004;&#65039;";
+            const iconCross = "&#10060;";
+            const iconUnknown = "&#10068;";
 
-            // down
-            const isUp = active_state === "active" && sub_state === "running";
-            const textDown = "stopped";
-            const iconDown = "&#10060;"
-
-            // unknown
-            const textUnknown = "unknown";
-            const iconUnknown = "&#10068;"
-
-            let content = '';
-            if (isUp) {
-                content = `${textUp} ${iconUp}`;
-            } else if (isDown) {
-                content = `${textDown} ${iconDown}`;
+            let content;
+            if (active_state === "active" && sub_state === "running") {
+                content = `running ${iconCheck}`;
+            } else if (active_state === "inactive" && sub_state === "dead") {
+                content = `stopped ${iconCross}`;
+            } else if (active_state === "failed" && sub_state === "failed") {
+                content = `failed ${iconCross}`;
             } else {
-                content = `${textUnknown} ${iconUnknown}`;
+                content = `unknown (${active_state},${sub_state}) ${iconUnknown}`;
             }
 
             const ports = [];
             processes.forEach(process => {
-                process.ports.forEach(port => {
-                    if (!ports.includes(port)) {
-                        ports.push(port);
-                    }
-                })
+                if (process.ports) {
+                    process.ports.forEach(port => {
+                        if (!ports.includes(port)) {
+                            ports.push(port);
+                        }
+                    });
+                }
             });
 
             if (ports.length > 0) {

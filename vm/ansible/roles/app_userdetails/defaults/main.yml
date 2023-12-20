@@ -30,24 +30,22 @@ app_userdetails_db_test_username: 'userdetails_test'
 app_userdetails_db_spring_data_database: 'userdetails_spring_data'
 app_userdetails_db_spring_data_username: 'userdetails_spring_data'
 
-# Settings that resemble production to test the built artifact.
-app_userdetails_java_opts:
-  - '-Djava.awt.headless=true'
-  - '-XX:+UseG1GC'
-  - '-Xms256m'
-  - '-Xmx1g'
-  - '-XX:ErrorFile={{ services_dir }}/{{ app_userdetails_name }}_hs_err_pid_%p.log'
-  - '-Dlog4j2.formatMsgNoLookups=true'
-  - '-Dlogging.config={{ logback_config_path }}'
-  - '-Dspring.output.ansi.enabled=never'
-  - '-Dfile.encoding=UTF-8'
+# Settings for running the app that resemble production.
+app_userdetails_java_sys_props:
+  - 'java.awt.headless=true'
+  - 'log4j2.formatMsgNoLookups=true'
+  - 'logging.config={{ logback_config_path }}'
+  - 'spring.output.ansi.enabled=never'
+  - 'file.encoding=UTF-8'
+
+app_userdetails_java_jvm_opts:
+  - 'XX:+UseG1GC'
+  - 'Xms256m'
+  - 'Xmx1g'
+  - 'XX:ErrorFile={{ services_dir }}/{{ app_userdetails_name }}_hs_err_pid_%p.log'
 
 app_userdetails_env_vars:
   - key: 'SPRING_CONFIG_LOCATION'
     value: 'file:{{ app_userdetails_config_path }}'
   - key: 'LOG4J_FORMAT_MSG_NO_LOOKUPS'
     value: 'true'
-  - key: 'LOG_DIR'
-    value: '{{ log_dir }}'
-  - key: 'LOGGING_DIR'
-    value: '{{ log_dir }}'

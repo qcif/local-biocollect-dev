@@ -24,7 +24,8 @@
     entry_java: '{{ app_cas_java }}'
     entry_builder: '{{app_cas_builder }}'
     entry_working_dir: '{{ app_cas_source_dir }}'
-    entry_java_opts: '{{ app_cas_java_opts }}'
+    entry_java_sys_props: '{{ app_cas_java_sys_props }}'
+    entry_java_jvm_opts: '{{ app_cas_java_jvm_opts }}'
     entry_env_vars: '{{ app_cas_env_vars }}'
     entry_java_artifact_name: 'target/cas-exec.war'
     entry_is_service: true
@@ -76,7 +77,8 @@
     entry_config_path: '{{ app_cas_config_path }}'
     entry_working_dir: '{{ app_cas_source_dir }}'
     entry_builder: '{{app_cas_builder }}'
-    entry_java_opts: '{{ app_cas_java_opts }}'
+    entry_java_sys_props: '{{ app_cas_java_sys_props }}'
+    entry_java_jvm_opts: '{{ app_cas_java_jvm_opts }}'
     entry_env_vars: '{{ app_cas_env_vars }}'
     entry_debug_port: '{{ specified_ports.cas_debug_port }}'
 

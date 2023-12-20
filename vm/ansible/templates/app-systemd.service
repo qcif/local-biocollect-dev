@@ -6,7 +6,7 @@ Description={{ entry_name }}
 After=network.target
 
 [Service]
-Type=simple
+Type=forking
 
 Environment="JAVA_HOME={% if entry_java == '8' %}{{ java_8_home_dir }}{% elif entry_java == '11' %}{{ java_11_home_dir }}{% endif %}"
 
@@ -28,13 +28,12 @@ ExecStart={{ entry_working_dir }}/gradlew \
     --stacktrace \
     --info \
     --console=plain \
-    -Dlogging.config={{ logback_config_path }} \
     bootRun \
-    --args='--spring-boot.run.jvmArguments="{% for entry_java_opt in entry_java_opts %}{{ entry_java_opt }} {% endfor %}-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ entry_debug_port }}"'
+    '-DcustomAddJvmArg.agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ entry_debug_port }}' {% if entry_java_sys_props is defined and entry_java_sys_props %}{% for entry_java_sys_prop in entry_java_sys_props %}'-DcustomAddSysProp.{{ entry_java_sys_prop }}' {% endfor %}{% endif %}{% if entry_java_jvm_opts is defined and entry_java_jvm_opts %}{% for entry_java_jvm_opt in entry_java_jvm_opts %}'-DcustomAddJvmArg.{{ entry_java_jvm_opt }}' {% endfor %}{% endif %}
 
 # {% elif entry_builder == 'maven' %}
 
-Environment="MAVEN_OPTS={% for entry_java_opt in entry_java_opts %}{{ entry_java_opt }} {% endfor %}-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ entry_debug_port }}"
+Environment="MAVEN_OPTS={% if entry_java_sys_props is defined %}{% for entry_java_sys_prop in entry_java_sys_props %}-D{{ entry_java_sys_prop }} {% endfor %}{% endif %}{% if entry_java_jvm_opts is defined %}{% for entry_java_jvm_opt in entry_java_jvm_opts %}-{{ entry_java_jvm_opt }} {% endfor %}{% endif %}-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:{{ entry_debug_port }}"
 
 ExecStartPre=/usr/bin/dos2unix '{{ entry_working_dir }}/mvnw'
 ExecStart={{ entry_working_dir }}/mvnw -Dmaven.plugin.validation=VERBOSE package spring-boot:run -T 5

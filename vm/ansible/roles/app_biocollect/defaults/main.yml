@@ -22,23 +22,22 @@ app_biocollect_source_dir: '{{ guest_src_dir }}/biocollect'
 app_biocollect_temp_dir: '/tmp/biocollect'
 
 # Settings that resemble production to test the built artifact.
-app_biocollect_java_opts:
-  - '-Djava.awt.headless=true'
-  - '-XX:+UseG1GC'
-  - '-Xms256m'
-  - '-Xmx1g'
-  - '-XX:ErrorFile={{ services_dir }}/{{ app_biocollect_name }}_hs_err_pid_%p.log'
-  - '-Dlog4j2.formatMsgNoLookups=true'
-  - '-Dlogging.config={{ logback_config_path }}'
-  - '-Dspring.output.ansi.enabled=never'
-  - '-Dfile.encoding=UTF-8'
+app_biocollect_java_sys_props:
+  - 'java.awt.headless=true'
+  - 'log4j2.formatMsgNoLookups=true'
+  - 'logging.config={{ logback_config_path }}'
+  - 'spring.output.ansi.enabled=never'
+  - 'file.encoding=UTF-8'
+
+app_biocollect_java_jvm_opts:
+  - 'XX:+UseG1GC'
+  - 'Xms256m'
+  - 'Xmx1g'
+  - 'XX:ErrorFile={{ services_dir }}/{{ app_biocollect_name }}_hs_err_pid_%p.log'
 
 app_biocollect_env_vars:
   - key: 'SPRING_CONFIG_LOCATION'
     value: 'file:{{ app_biocollect_source_dir }}/grails-app/conf/application.groovy,file:{{ app_biocollect_config_path }}'
   - key: 'LOG4J_FORMAT_MSG_NO_LOOKUPS'
     value: 'true'
-  - key: 'LOG_DIR'
-    value: '{{ log_dir }}'
-  - key: 'LOGGING_DIR'
-    value: '{{ log_dir }}'
+
