@@ -92,7 +92,7 @@ if [[ ! -d "${ANSIBLE_VENV_DIR}" ]]; then
   run_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -yq update
   run_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -yq upgrade
   run_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-dev" "python${PYTHON_VERSION}-venv" "python${PYTHON_VERSION}-distutils"
-  run_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install libxml2-dev libxslt-dev zlib1g-dev libffi-dev
+  run_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install python3-lxml libxml2-dev libxslt-dev zlib1g-dev libffi-dev
 
   sudo "python${PYTHON_VERSION}" -m venv "${ANSIBLE_VENV_DIR}"
   sudo chown -R "${FILE_OWNER}:${FILE_OWNER}" "${ANSIBLE_VENV_DIR}"
@@ -115,7 +115,13 @@ log "INFO" "Install and update Python packages for ansible."
   community.docker ansible.netcommon \
   ansible.utils community.crypto
 
-log "INFO" "Install database packages."
+log "INFO" "Install additional packages to support ansible."
 
-run_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install default-libmysqlclient-dev build-essential pkg-config
+run_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install \
+  curl jq unzip gnupg gnupg-agent dos2unix \
+  default-libmysqlclient-dev \
+  build-essential pkg-config \
+  chromium-browser chromium-chromedriver firefox firefox-geckodriver \
+  lsb-release libsystemd-dev
+
 "${ANSIBLE_VENV_DIR}/bin/pip" install -U pymongo docker PyMySQL mysqlclient

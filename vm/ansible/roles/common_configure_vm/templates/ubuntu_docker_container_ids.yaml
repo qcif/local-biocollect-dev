@@ -1,6 +1,0 @@
----
-- example: 'ba10853a480c\n9b8b66c811fe'
-  getval: '(?P<name>\S+)'
-  result:
-    "{{ name }}":
-      name: "{{ name }}"

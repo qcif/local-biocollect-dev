@@ -6,7 +6,7 @@ Description={{ entry_name }}
 After=network.target
 
 [Service]
-Type=forking
+Type=simple
 
 Environment="JAVA_HOME={% if entry_java == '8' %}{{ java_8_home_dir }}{% elif entry_java == '11' %}{{ java_11_home_dir }}{% endif %}"
 

@@ -63,18 +63,31 @@
   delegate_to: localhost
   when: "' Creat' in docker_compose_up_result.stdout or ' Start' in docker_compose_up_result.stdout"
 
+# Other things tried, which had problems:
+# - ansible.utils.cli_parse: Almost works,
+#   except it has an odd bug where container ids that look like scientific number notation are parsed into numbers??
+#   A container name like '5e8818292388' might be parsed as a scientific notation number,
+#   leading to 'Infinity' or 'inf'.
+# - community.docker.docker_compose: requires the PyPI package 'docker-compose', which is very hard to install.
+
+# Instead, manually parse the docker command output.
+
 - name: Get all docker container ids
-  ansible.utils.cli_parse:
-    command: 'docker ps -aq'
-    parser:
-      name: ansible.netcommon.native
-      template_path: '{{ role_path }}/templates/{{ ansible_distribution | lower }}_docker_container_ids.yaml'
-    set_fact: docker_container_ids
+  ansible.builtin.command:
+    cmd: 'docker ps -aq'
+  register: docker_container_ids_result
+
+- name: Show information
+  ansible.builtin.debug:
+    var: docker_container_ids_result
 
 - name: Get all docker container ip addresses
-  ansible.utils.cli_parse:
-    command: "docker inspect -f {% raw %}'{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'{% endraw %} {% for k, v in docker_container_ids.items() %}{{ v.name }} {% endfor %}"
-    parser:
-      name: ansible.netcommon.native
-      template_path: '{{ role_path }}/templates/{{ ansible_distribution | lower }}_docker_container_ips.yaml'
-    set_fact: docker_container_ips
+  ansible.builtin.command:
+    cmd: "docker inspect -f {% raw %}'{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'{% endraw %} {% for container_id in docker_container_ids_result.stdout_lines %}{{ container_id }} {% endfor %}"
+  register: docker_container_ips_result
+
+- name: Show information
+  ansible.builtin.debug:
+    var: docker_container_ips_result
+
+# TODO: use docker container ip addresses to allow access in userdetails authorised systems

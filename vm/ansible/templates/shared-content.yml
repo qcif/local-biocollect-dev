@@ -63,3 +63,9 @@ shared_grails_mail_defaults: &shared_grails_mail_defaults
     - 'mail.smtp.port': '{{ specified_ports.mail_service_smtp_port }}'
     - 'mail.smtp.auth': 'false'
     - 'mail.smtp.ssl.protocols': 'TLSv1.2'
+
+shared_cas_mongo_defaults: &shared_cas_mongo_defaults
+  ssl-enabled: false
+  host: '{{ web_base_host }}'
+  port: {{ specified_ports.mongo_service_port }}
+  authentication-database-name: '{{ mongo_service_auth_database }}'

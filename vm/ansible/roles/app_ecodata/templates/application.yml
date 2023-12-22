@@ -29,13 +29,17 @@ common_database_elasticsearch_main_properties: &common_database_elasticsearch_ma
 
 # --- Embedded tomcat ---
 
-server:
+server: &app_server_settings
   port: '{{ specified_ports.ecodata_http_port }}'
+  context-path: '/{{ app_ecodata_name }}'
+  contextPath: '/{{ app_ecodata_name }}'
   ssl:
     enabled: false
   servlet:
     application-display-name: '{{ app_ecodata_name }}'
     context-path: '/{{ app_ecodata_name }}'
+    contextPath: '/{{ app_ecodata_name }}'
+  serverURL: '{{ web_base_url }}/{{ app_ecodata_name }}'
 
 # --- Auth & CAS ---
 
@@ -60,41 +64,69 @@ security: &app_security_settings
 
 # --- Grails settings ---
 
+grails: &app_grails_settings
+  hostname: '{{ web_base_host }}'
+  serverURL: '{{ web_base_url }}/{{ app_ecodata_name }}'
+  mail:
+    <<: *shared_grails_mail_defaults
+
+
+# --- Ecodata custom settings ---
+
+app:
+  external:
+    model:
+      dir: '{{ app_ecodata_source_dir }}/models/'
+  http:
+    header:
+      hostName: "X-ALA-hostname"
 
 # --- Set for the environments to override config embedded in app ---
 
 environments:
   development:
+    server:
+      <<: *app_server_settings
     security:
       <<: *app_security_settings
     grails:
+      <<: *app_grails_settings
       mongodb:
         <<: *common_datasource_mongo_main_properties
     elasticsearch:
       <<: *common_database_elasticsearch_main_properties
 
   test:
+    server:
+      <<: *app_server_settings
     security:
       <<: *app_security_settings
     grails:
+      <<: *app_grails_settings
       mongodb:
         <<: *common_datasource_mongo_test_properties
     elasticsearch:
       <<: *common_database_elasticsearch_main_properties
 
   meritfunctionaltest:
+    server:
+      <<: *app_server_settings
     security:
       <<: *app_security_settings
     grails:
+      <<: *app_grails_settings
       mongodb:
         <<: *common_datasource_mongo_test_properties
     elasticsearch:
       <<: *common_database_elasticsearch_main_properties
 
   production:
+    server:
+      <<: *app_server_settings
     security:
       <<: *app_security_settings
     grails:
+      <<: *app_grails_settings
       mongodb:
         <<: *common_datasource_mongo_main_properties
     elasticsearch:

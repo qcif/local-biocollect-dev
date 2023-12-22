@@ -10,11 +10,11 @@
 
     <!-- Log levels different from the root default -->
 
-    <!-- Disable the Spring Boot configuration dump -->
-    <logger name="org.springframework.boot.autoconfigure.logging" level="INFO"/>
+    <!-- Show more detail from things in the ALA namespace -->
+    <logger name="au.org.ala" level="DEBUG"/>
 
     <!-- Default log level -->
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="CONSOLE_LOG"/>
     </root>
 

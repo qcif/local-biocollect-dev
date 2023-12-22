@@ -1,5 +1,9 @@
 ---
 
+# Examples:
+# https://github.com/AtlasOfLivingAustralia/ala-install/tree/master/ansible/roles/userdetails/templates
+# https://github.com/AtlasOfLivingAustralia/userdetails/blob/master/grails-app/conf/application.yml
+
 {{ lookup("ansible.builtin.template", "shared-content.yml") }}
 
 # --- Database ---
@@ -96,6 +100,15 @@ security: &app_security_settings
     uriExclusionFilterPattern: [ '/assets/.*','/uploads/.*' ]
     <<: *shared_security_cas_defaults
 
+# --- Grails settings ---
+
+grails: &app_grails_settings
+  hostname: '{{ web_base_host }}'
+  serverURL: '{{ web_base_url }}/{{ app_userdetails_name }}'
+  mail:
+    <<: *shared_grails_mail_defaults
+
+
 # --- Theme and skin ---
 
 headerAndFooter:
@@ -108,6 +121,8 @@ skin:
 
 environments:
   development:
+    grails:
+      <<: *app_grails_settings
     dataSource:
       <<: *shared_datasource_mysql_defaults
       <<: *common_datasource_mysql_main_properties
@@ -115,16 +130,20 @@ environments:
     spring:
       flyway:
         <<: *common_spring_flyway_properties
+        <<: *common_datasource_mysql_main_properties
       session:
         <<: *common_spring_session_properties
       data:
         <<: *common_spring_data_properties
     flyway:
       <<: *common_spring_flyway_properties
+      <<: *common_datasource_mysql_main_properties
     security:
       <<: *app_security_settings
 
   test:
+    grails:
+      <<: *app_grails_settings
     dataSource:
       <<: *shared_datasource_mysql_defaults
       <<: *common_datasource_mysql_test_properties
@@ -134,16 +153,20 @@ environments:
     spring:
       flyway:
         <<: *common_spring_flyway_properties
+        <<: *common_datasource_mysql_test_properties
       session:
         <<: *common_spring_session_properties
       data:
         <<: *common_spring_data_properties
     flyway:
       <<: *common_spring_flyway_properties
+      <<: *common_datasource_mysql_test_properties
     security:
       <<: *app_security_settings
 
   production:
+    grails:
+      <<: *app_grails_settings
     dataSource:
       <<: *shared_datasource_mysql_defaults
       <<: *common_datasource_mysql_main_properties
@@ -151,11 +174,13 @@ environments:
     spring:
       flyway:
         <<: *common_spring_flyway_properties
+        <<: *common_datasource_mysql_main_properties
       session:
         <<: *common_spring_session_properties
       data:
         <<: *common_spring_data_properties
     flyway:
       <<: *common_spring_flyway_properties
+      <<: *common_datasource_mysql_main_properties
     security:
       <<: *app_security_settings

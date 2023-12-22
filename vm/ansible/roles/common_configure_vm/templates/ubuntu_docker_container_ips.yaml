@@ -1,7 +1,0 @@
----
-- example: '/nginx - 172.18.0.10'
-  getval: '\/?(?P<name>\S+) - (?P<ip>\S+)'
-  result:
-    "{{ name }}":
-      name: "{{ name }}"
-      ip: "{{ ip }}"

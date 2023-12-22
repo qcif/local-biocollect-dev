@@ -88,6 +88,14 @@ security: &app_security_settings
     uriExclusionFilterPattern: [ '/assets/.*','/uploads/.*' ]
     <<: *shared_security_cas_defaults
 
+# --- Grails settings ---
+
+grails: &app_grails_settings
+  hostname: '{{ web_base_host }}'
+  serverURL: '{{ web_base_url }}/{{ app_apikey_name }}'
+  mail:
+    <<: *shared_grails_mail_defaults
+
 # --- Theme and skin ---
 
 headerAndFooter:
@@ -100,6 +108,8 @@ skin:
 
 environments:
   development:
+    grails:
+      <<: *app_grails_settings
     dataSource:
       <<: *shared_datasource_mysql_defaults
       <<: *common_datasource_mysql_main_properties
@@ -117,6 +127,8 @@ environments:
       <<: *app_security_settings
 
   test:
+    grails:
+      <<: *app_grails_settings
     dataSource:
       <<: *shared_datasource_mysql_defaults
       <<: *common_datasource_mysql_test_properties
@@ -136,6 +148,8 @@ environments:
       <<: *app_security_settings
 
   production:
+    grails:
+      <<: *app_grails_settings
     dataSource:
       <<: *shared_datasource_mysql_defaults
       <<: *common_datasource_mysql_main_properties

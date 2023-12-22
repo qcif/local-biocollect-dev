@@ -175,7 +175,7 @@
     });
 
     // to update the status of the application services
-    const evtSource = new EventSource("/sse");
+    const evtSource = new EventSource("/sse/");
     evtSource.addEventListener("status_update", (event) => {
         console.debug("EventSource event received");
         const data = JSON.parse(event.data);

@@ -134,3 +134,30 @@
     - database: '{{ app_cas_mysql_db_test_database }}'
       username: '{{ app_cas_mysql_db_test_username }}'
       password: '{{ app_cas_mysql_db_test_password }}'
+
+- name: Ensure mongodb users exist and can access mongodb databases
+  community.mongodb.mongodb_user:
+    login_database: '{{ mongo_service_auth_database }}'
+    login_host: '{{ local_host }}'
+    login_password: "{{ mongo_service_root_password }}"
+    login_port: '{{ specified_ports.mongo_service_port }}'
+    login_user: '{{ mongo_service_root_username }}'
+    auth_mechanism: '{{ mongo_service_auth_mechanism }}'
+    database: '{{ mongo_service_auth_database }}'
+    name: '{{ item.user }}'
+    password: "{{ item.pass }}"
+    roles: '{{ item.roles }}'
+    state: present
+  loop:
+    - database: "{{ app_cas_mongo_db_main_database }}"
+      user: "{{ app_cas_mongo_db_main_username }}"
+      pass: "{{ app_cas_mongo_db_main_password }}"
+      roles:
+        - db: '{{ app_cas_mongo_db_main_database }}'
+          role: 'readWrite'
+    - database: "{{ app_cas_mongo_db_spring_data_database }}"
+      user: "{{ app_cas_mongo_db_spring_data_username }}"
+      pass: "{{ app_cas_mongo_db_spring_data_password }}"
+      roles:
+        - db: '{{ app_cas_mongo_db_spring_data_database }}'
+          role: 'readWrite'

@@ -16,7 +16,7 @@ bootstrap4:
 
 # --- Embedded tomcat ---
 
-server:
+server: &app_server_settings
   port: '{{ specified_ports.biocollect_http_port }}'
   ssl:
     enabled: false
@@ -47,9 +47,19 @@ security: &app_security_settings
     uriExclusionFilterPattern: ['/assets/.*','/uploads/.*']
     <<: *shared_security_cas_defaults
 
+# --- Theme and skin ---
+
+headerAndFooter:
+  <<: *shared_header_footer_defaults
+
+skin:
+  <<: *shared_skin_defaults
+
 # --- Grails settings ---
 
-grails:
+grails: &app_grails_settings
+  hostname: '{{ web_base_host }}'
+  serverURL: '{{ web_base_url }}/{{ app_biocollect_name }}'
   mail:
     <<: *shared_grails_mail_defaults
 
@@ -68,17 +78,35 @@ google:
   maps:
     apiKey: 'not-configured'
 
+# --- Biocollect custom settings ---
+
+pingDuration: 300000
+facets:
+  flimit: 15
+
 # --- Set for the environments to override config embedded in app ---
 
 environments:
   development:
+    grails:
+      <<: *app_grails_settings
+    server:
+      <<: *app_server_settings
     security:
       <<: *app_security_settings
 
   test:
+    grails:
+      <<: *app_grails_settings
+    server:
+      <<: *app_server_settings
     security:
       <<: *app_security_settings
 
   production:
+    grails:
+      <<: *app_grails_settings
+    server:
+      <<: *app_server_settings
     security:
       <<: *app_security_settings
