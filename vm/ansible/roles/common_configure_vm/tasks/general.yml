@@ -55,8 +55,7 @@
     group: 'root'
     mode: 'u=rw,g=r,o=r'
 
-# apt packages
-
+# logging config files
 - name: Template the shared logback config file
   ansible.builtin.template:
     src: 'logback.xml'
@@ -67,6 +66,17 @@
     group: 'root'
     mode: 'u=rw,g=r,o=r'
 
+- name: Template the shared log4j config file
+  ansible.builtin.template:
+    src: 'log4j2.xml'
+    dest: '{{ log4j2_config_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
+# apt packages
 - name: Configure apt source and install packages
   ansible.builtin.include_role:
     name: common_apt_source

@@ -73,12 +73,19 @@ There is a way to pass through env vars from your local machine to the vagrant V
 To be able to download packages hosted on GitHub Packages, you'll need a [GitHub Personal Access Token (classic)](https://github.com/settings/tokens).
 The token needs at least `read:packages` permission.
 
-Add it to the `.local/additional-env-vars.yml` file:
+Set environment variables:
+
+```console
+GITHUB_ACTOR='<github user name>'
+GITHUB_TOKEN='<personal access token (classic)>'
+```
+
+Add the variable names to the `.local/additional-env-vars.yml` file:
 
 ```yaml
 ---
-GITHUB_ACTOR: '<github user name>'
-GITHUB_TOKEN: '<personal access token (classic)>'
+GITHUB_ACTOR: ''
+GITHUB_TOKEN: ''
 ```
 
 ## Usage
@@ -98,24 +105,33 @@ Set up a [vagrant synchronisation method](https://developer.hashicorp.com/vagran
 to work on the code locally
 and have it automatically update in the vagrant VM.
 
-To run biocollect, there is an order to start the apps:
+To run biocollect, there is an order to start the apps.
+
+Wait for each app to be ready before starting the next. Check using `dev_app_[name]_logs`.
 
 ```console
 dev_app_cas_service start
 dev_app_apikey_service start
 dev_app_userdetails_service start
-```
-
-Wait for these apps to be ready. Check using `dev_app_[name]_logs`.
-
-Then start up Ecodata, wait for it to be ready, then start Biocollect.
-
-```console
 dev_app_ecodata_service start
 dev_app_biocollect_service start
 ```
 
 You can then view the application websites using the `web` links on [the local dev landing page](http://localhost:8880).
+
+If you need to remove all the database and generated data and start over:
+
+```console
+sudo rm -rf /home/vagrant/secret_generation/*
+dev_docker_compose_remove
+```
+
+Then synchronise the vagrant data and run the provisioning to create everything again:
+
+```console
+vagrant rsync
+vagrant provision
+```
 
 ## Advanced settings
 

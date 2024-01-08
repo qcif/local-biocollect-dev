@@ -38,28 +38,30 @@ jndi:
 info:
   description: '[Org Name Short] [Proj Name Short] [{{ app_cas_name }}] [dev]'
 logging:
-  config: 'file:{{ guest_src_dir }}/ala-cas-5/src/main/resources/log4j2.xml'
+  config: 'file:{{ log4j2_config_path }}'
 
 # --- Embedded web server ---
 
 server:
+
   # The 'server.*' settings are for the embedded containers that ship with CAS.
   port: {{ specified_ports.cas_http_port }}
-  forward-headers-strategy: native
+  forward-headers-strategy: NATIVE
+
   session:
     timeout: 86400
+
   ssl:
     enabled: false
     key-store: ''
+
   servlet:
     application-display-name: '[Org Name Short] [Proj Name Short] [{{ app_cas_name }}] [dev]'
-    # NOTE: server.servlet.contextPath is appended to the nginx proxy_pass url, which might already have a trailing slash.
-    # The slashes *cannot* be duplicated, so if the nginx proxy_pass has a trailing slash (which is significant to nginx),
-    # this contextPath must not have a starting slash.
-    # NOTE: CAS 6.x will fail if the context-path does not start with a slash.
     context-path: '/{{ app_cas_name }}'
     session:
       timeout: '8h'
+
+  # see https://docs.spring.io/spring-boot/docs/2.7.x/reference/htmlsingle/#howto.webserver.use-behind-a-proxy-server
   tomcat:
     accesslog:
       # see https://apereo.github.io/cas/6.6.x/installation/Configuring-Servlet-Container-Embedded-Tomcat.html#configuration
@@ -76,10 +78,13 @@ server:
     remoteip:
       # see https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#application-properties.server.server.tomcat.remoteip.host-header
       host-header: X-Forwarded-Host
-      protocol-header: x-forwarded-proto
-      port-header: x-forwarded-port
-      remote-ip-header: x-forwarded-for
+      protocol-header: X-Forwarded-Proto
+      port-header: X-Forwarded-Port
+      remote-ip-header: X-Forwarded-For
       protocol-header-https-value: https
+
+  error:
+    include-stacktrace: 'ALWAYS'
 
 # --- CAS settings ---
 
@@ -96,13 +101,15 @@ cas:
 # --- CAS server settings ---
 
   # see https://github.com/apereo/cas/blob/6.6.x/api/cas-server-core-api-configuration-model/src/main/java/org/apereo/cas/configuration/model/core/CasServerProperties.java
+  # see https://apereo.github.io/cas/6.6.x/configuration/Configuration-Management.html
   server:
     # 'name': Full name of the CAS server. This is the public-facing address of the CAS deployment and not the individual node address.
     # e.g. https://cas.example.org:8443
     name: '{{ web_base_url }}'
     # 'prefix': A concatenation of the server name plus the CAS context path. Deployments at root likely need to blank out this value.
     # e.g. http://localhost/cas
-    prefix: '{{ web_base_url }}/{{ app_cas_name }}'
+    # /{{ app_cas_name }}
+    prefix: '{{ web_base_url }}'
     # 'scope': The CAS Server scope.
     # e.g. example.org
     scope: '{{ web_base_host }}'
@@ -123,7 +130,7 @@ cas:
       ssl-valve:
         enabled: false
   host:
-    name: '{{ web_base_url }}'
+    name: '{{ web_base_url }}/{{ app_cas_name }}'
 
 # -- CAS http and CORS settings ---
 
@@ -537,6 +544,11 @@ spring:
     mongo:
       collectionName: sessions_cas
 
+  security:
+    user:
+      name: '{{ app_cas_spring_security_username }}'
+      password: '{{ app_cas_spring_security_password }}'
+
   data:
     mongodb:
       uri: 'mongodb://{{ app_cas_mongo_db_spring_data_username }}:{{ app_cas_mongo_db_spring_data_password }}@{{ web_base_host }}:{{ specified_ports.mongo_service_port }}/{{ app_cas_mongo_db_spring_data_database }}?{{ mongo_default_uri_options }}'
@@ -545,3 +557,16 @@ spring:
       username: '{{ app_cas_mongo_db_spring_data_username }}'
       password: '{{ app_cas_mongo_db_spring_data_password }}'
       database: '{{ app_cas_mongo_db_spring_data_database }}'
+
+  mvc:
+    pathmatch:
+      # Default strategy for matching request paths against registered Spring MVC handler mappings.
+      # Must be set to 'ant-path-matcher' due to use of path patterns that do not work with 'path-pattern-parser'.
+      # See: https://github.com/apereo/cas/blob/v6.6.7/webapp/cas-server-webapp-resources/src/main/resources/application.properties#L203
+      # See: https://docs.spring.io/spring-boot/docs/2.7.x/reference/html/application-properties.html#application-properties.web.spring.mvc.pathmatch.matching-strategy
+      # See: https://github.com/apereo/cas/pull/5425
+      # Setting this incorrectly can cause the error:
+      # java.lang.IllegalStateException: Invalid mapping on handler class [org.apereo.cas.oidc.web.controllers.discovery.OidcWellKnownEndpointController]:
+      # public org.springframework.http.ResponseEntity org.apereo.cas.oidc.web.controllers.discovery.OidcWellKnownEndpointController.getWellKnownDiscoveryConfiguration(
+      # javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+      matching-strategy: 'ant-path-matcher'

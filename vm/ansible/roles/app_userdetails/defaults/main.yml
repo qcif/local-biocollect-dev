@@ -21,11 +21,7 @@ app_userdetails_config_path: '{{ app_userdetails_config_dir }}/userdetails-confi
 app_userdetails_source_dir: '{{ guest_src_dir }}/userdetails'
 
 # databases
-app_userdetails_db_main_database: 'userdetails_main'
-app_userdetails_db_main_username: 'userdetails_main'
-
-app_userdetails_db_test_database: 'userdetails_test'
-app_userdetails_db_test_username: 'userdetails_test'
+# userdetails uses the same mysql db as CAS
 
 app_userdetails_db_spring_data_database: 'userdetails_spring_data'
 app_userdetails_db_spring_data_username: 'userdetails_spring_data'

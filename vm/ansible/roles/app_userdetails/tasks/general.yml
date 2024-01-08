@@ -91,39 +91,6 @@
     group: 'vagrant'
     mode: 'u=rw,g=r,o=r'
 
-- name: Ensure mysql databases exist
-  community.mysql.mysql_db:
-    login_host: '{{ local_host }}'
-    login_port: '{{ specified_ports.mysql_service_port }}'
-    login_user: '{{ mysql_service_root_username }}'
-    login_password: '{{ mysql_service_root_password }}'
-    name: '{{ item }}'
-    state: 'present'
-  loop:
-    - '{{ app_userdetails_db_main_database }}'
-    - '{{ app_userdetails_db_test_database }}'
-
-- name: Ensure mysql users exist
-  community.mysql.mysql_user:
-    login_host: '{{ local_host }}'
-    login_port: '{{ specified_ports.mysql_service_port }}'
-    login_user: '{{ mysql_service_root_username }}'
-    login_password: '{{ mysql_service_root_password }}'
-    name: '{{ item.username }}'
-    host: '%'
-    plugin: 'caching_sha2_password'
-    plugin_auth_string: '{{ item.password }}'
-    priv: '{{ item.database }}.*:ALL'
-    column_case_sensitive: true
-    state: 'present'
-  loop:
-    - database: '{{ app_userdetails_db_main_database }}'
-      username: '{{ app_userdetails_db_main_username }}'
-      password: '{{ app_userdetails_db_password }}'
-    - database: '{{ app_userdetails_db_test_database }}'
-      username: '{{ app_userdetails_db_test_username }}'
-      password: '{{ app_userdetails_db_test_password }}'
-
 - name: Ensure mongodb users exist and can access mongodb databases
   community.mongodb.mongodb_user:
     login_database: '{{ mongo_service_auth_database }}'

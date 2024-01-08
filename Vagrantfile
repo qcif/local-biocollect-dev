@@ -20,7 +20,7 @@ Vagrant.configure("2") do |config|
 
   # Ansible is used to provision the virtual machine.
   # versions: https://github.com/ansible/ansible/releases
-  ansible_core_version = '2.16.0'
+  ansible_core_version = '2.16.2'
 
   # Python is used to run ansible and for managing the apps and plugins.
   # versions: https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa
@@ -51,7 +51,7 @@ Vagrant.configure("2") do |config|
 
   # Elasticsearch container is used by Ecodata for search.
   # versions: https://hub.docker.com/_/elasticsearch
-  elasticsearch_version = '7.17.15'
+  elasticsearch_version = '7.17.16'
 
   # Gotenberg pdf service for creating pdf files.
   # versions: https://hub.docker.com/r/gotenberg/gotenberg/tags

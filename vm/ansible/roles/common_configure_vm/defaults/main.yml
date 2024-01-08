@@ -14,6 +14,7 @@ systemd_services_dir: '/etc/systemd/system'
 
 # shared files
 logback_config_path: '{{ config_dir }}/logback.xml'
+log4j2_config_path: '{{ config_dir }}/log4j2.xml'
 systemd_env_vars_path: '{{ config_dir }}/systemd-env-vars'
 bash_env_vars_path: '{{ ubuntu_profile_dir }}/02-additional-env-vars.sh'
 
