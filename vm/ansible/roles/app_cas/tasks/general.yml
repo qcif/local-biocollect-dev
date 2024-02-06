@@ -102,6 +102,26 @@
     group: 'vagrant'
     mode: 'u=rw,g=r,o=r'
 
+- name: Template the log4j config file
+  ansible.builtin.template:
+    src: 'log4j2.xml'
+    dest: '{{ app_cas_log4j2_config_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Template the tomcat logging config file
+  ansible.builtin.template:
+    src: 'logging.properties'
+    dest: '{{ app_cas_tomcat_logging_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
 - name: Ensure mysql databases exist for cas
   community.mysql.mysql_db:
     login_host: '{{ local_host }}'
@@ -161,3 +181,26 @@
       roles:
         - db: '{{ app_cas_mongo_db_spring_data_database }}'
           role: 'readWrite'
+
+#- name: Template the cas services js file
+#  ansible.builtin.template:
+#    src: 'set-cas-services.js'
+#    dest: '{{ import_dir }}/set-cas-services.js'
+#    force: true
+#    backup: false
+#    owner: 'vagrant'
+#    group: 'vagrant'
+#    mode: 'u=rw,g=r,o=r'
+#
+#- name: Update cas services mongo database
+#  ansible.builtin.command:
+#    cmd: >
+#      docker exec mongo_service sh -c
+#      'mongo
+#      --quiet
+#      --authenticationDatabase "{{ mongo_service_auth_database }}"
+#      --username "{{ app_cas_mongo_db_main_username }}"
+#      --password "{{ app_cas_mongo_db_main_password }}"
+#      "{{ app_cas_mongo_db_main_database }}"
+#      "{{ import_dir }}/set-cas-services.js"'
+#  changed_when: true

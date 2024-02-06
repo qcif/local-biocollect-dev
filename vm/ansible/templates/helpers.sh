@@ -90,7 +90,7 @@ echo "Unknown java '{{ entry_java }}'."
 exit 1
 {% endif %}
 
-export MAVEN_OPTS="-Xmx2g"
+export MAVEN_OPTS="-Xmx800m"
 
 cd "{{ entry_working_dir }}" || exit 1
 
@@ -101,11 +101,11 @@ export -n JAVA_HOME
 export -n MAVEN_OPTS
 }
 
-{% else %}
+# {% else %}
 
 echo "Unknown source builder {{ entry_builder }}."
 
-{% endif %}
+# {% endif %}
 
 
 # {% if entry_java_artifact_name is defined and entry_java_artifact_name %}
@@ -119,4 +119,4 @@ function dev_{{ entry_name }}_artifact_run() {
   -jar {{ entry_working_dir }}/{{ entry_java_artifact_name }}
 }
 
-{% endif %}
+# {% endif %}

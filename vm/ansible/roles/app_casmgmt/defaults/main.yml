@@ -1,0 +1,54 @@
+---
+# settings
+app_casmgmt_name: 'app_casmgmt'
+app_casmgmt_group: 'app'
+app_casmgmt_category: 'auth'
+app_casmgmt_builder: 'gradle'
+app_casmgmt_java: '11'
+app_casmgmt_ports:
+  http: '{{ specified_ports.casmgmt_http_port }}'
+  debug: '{{ specified_ports.casmgmt_debug_port }}'
+app_casmgmt_links:
+  tests: 'build/reports/tests/'
+
+# paths
+app_casmgmt_config_dir: '/data/casmgmt/config'
+app_casmgmt_helper_path: '{{ ubuntu_profile_dir }}/03-helper-app-casmgmt.sh'
+app_casmgmt_entry_nginx_path: '{{ nginx_conf_partial_path }}/{{ app_casmgmt_name }}.conf'
+app_casmgmt_entry_html_path: '{{ web_partial_dir }}/{{ app_casmgmt_name }}.html'
+app_casmgmt_systemd_service_path: '{{ systemd_services_dir }}/{{ app_casmgmt_name }}.service'
+app_casmgmt_config_path: '{{ app_casmgmt_config_dir }}/casmgmt-config.yml'
+app_casmgmt_source_dir: '{{ guest_src_dir }}/ala-cas-5-services'
+app_casmgmt_log4j2_config_path: '{{ app_casmgmt_config_dir }}/log4j2.xml'
+app_casmgmt_tomcat_logging_path: '{{ app_casmgmt_config_dir }}/tomcat-logging.properties'
+
+# databases
+app_casmgmt_mongo_db_spring_data_username: 'casmgmt_spring_data'
+app_casmgmt_mongo_db_spring_data_database: 'casmgmt_spring_data'
+
+# security
+app_casmgmt_spring_security_username: 'casmgmt_spring_user'
+
+# Settings that resemble production to test the built artifact.
+app_casmgmt_java_sys_props:
+  - 'java.awt.headless=true'
+  - 'cas.standalone.configurationDirectory={{ app_casmgmt_config_dir }}'
+  - 'cas.standalone.config={{ app_casmgmt_config_dir }}'
+  - 'log4j2.formatMsgNoLookups=true'
+  - 'spring.output.ansi.enabled=never'
+  - 'file.encoding=UTF-8'
+  - 'java.util.logging.config.file={{ app_casmgmt_tomcat_logging_path }}'
+
+app_casmgmt_java_jvm_opts:
+  - 'XX:+UseG1GC'
+  - 'Xms256m'
+  - 'Xmx800m'
+  - 'XX:ErrorFile={{ services_dir }}/{{ app_casmgmt_name }}_hs_err_pid_%p.log'
+
+app_casmgmt_env_vars:
+  - key: 'SPRING_CONFIG_LOCATION'
+    value: 'file:{{ app_casmgmt_config_path }}'
+  - key: 'LOG4J_FORMAT_MSG_NO_LOOKUPS'
+    value: 'true'
+  - key: 'LOGGING_DIR'
+    value: '{{ log_dir }}'

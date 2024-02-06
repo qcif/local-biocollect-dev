@@ -20,6 +20,8 @@ app_cas_systemd_service_path: '{{ systemd_services_dir }}/{{ app_cas_name }}.ser
 app_cas_config_path: '{{ app_cas_config_dir }}/cas-config.yml'
 app_cas_config_pwe_path: '{{ app_cas_config_dir }}/cas-pwe-config.properties'
 app_cas_source_dir: '{{ guest_src_dir }}/ala-cas-5'
+app_cas_log4j2_config_path: '{{ app_cas_config_dir }}/log4j2.xml'
+app_cas_tomcat_logging_path: '{{ app_cas_config_dir }}/tomcat-logging.properties'
 
 # databases
 app_cas_mysql_db_main_database: 'cas_main'
@@ -48,11 +50,12 @@ app_cas_java_sys_props:
   - 'log4j2.formatMsgNoLookups=true'
   - 'spring.output.ansi.enabled=never'
   - 'file.encoding=UTF-8'
+  - 'java.util.logging.config.file={{ app_cas_tomcat_logging_path }}'
 
 app_cas_java_jvm_opts:
   - 'XX:+UseG1GC'
   - 'Xms256m'
-  - 'Xmx2g'
+  - 'Xmx800m'
   - 'XX:ErrorFile={{ services_dir }}/{{ app_cas_name }}_hs_err_pid_%p.log'
 
 app_cas_env_vars:
@@ -62,4 +65,73 @@ app_cas_env_vars:
     value: 'true'
   - key: 'LOGGING_DIR'
     value: '{{ log_dir }}'
+
+# cas service definition
+app_cas_db_services_defs: [
+  {
+    "_class": "org.apereo.cas.services.RegexRegisteredService",
+    "_id": 101,
+    "id": 101,
+    "name": "Local development services",
+    "description": "Local development",
+    "logo": '{{ web_base_url }}/{{ app_theme_name }}/img/favicon.png',
+    "serviceId": "^https?://(127\\.0\\.0\\.1|localhost|::1\/128|::1|0:0:0:0:0:0:0:1)(:\\d+)?(/.*|$)",
+    "theme": "ala",
+    "logoutType": "BACK_CHANNEL",
+    "evaluationOrder": 1,
+    "requiredHandlers": [ ],
+    "properties": { },
+    "contacts": [ ],
+    "usernameAttributeProvider": {
+      # see https://apereo.github.io/cas/6.5.x/integration/Attribute-Release-PrincipalId.html
+      "_class": "org.apereo.cas.services.DefaultRegisteredServiceUsernameProvider",
+      "canonicalizationMode": "NONE",
+      "encryptUsername": false
+    },
+    "attributeReleasePolicy": {
+      # see https://apereo.github.io/cas/6.5.x/integration/Attribute-Release-Policies.html
+      "_class": "org.apereo.cas.services.ReturnAllAttributeReleasePolicy",
+      "principalAttributesRepository": {
+        "_class": "org.apereo.cas.authentication.principal.DefaultPrincipalAttributesRepository",
+        "expiration": 4,
+        "timeUnit": "HOURS"
+      },
+      "consentPolicy": {
+        "_class": "org.apereo.cas.services.consent.DefaultRegisteredServiceConsentPolicy",
+        "enabled": true
+      },
+      "authorizedToReleaseCredentialPassword": false,
+      "authorizedToReleaseProxyGrantingTicket": false,
+      "excludeDefaultAttributes": false,
+      "authorizedToReleaseAuthenticationAttributes": true
+    },
+    "multifactorPolicy": {
+      # see https://apereo.github.io/cas/6.5.x/mfa/Configuring-Multifactor-Authentication.html
+      "_class": "org.apereo.cas.services.DefaultRegisteredServiceMultifactorPolicy",
+      "multifactorAuthenticationProviders": [ ],
+      "failureMode": "UNDEFINED",
+      "bypassEnabled": false
+    },
+    "accessStrategy": {
+      # see https://apereo.github.io/cas/6.5.x/services/Configuring-Service-Access-Strategy.html
+      "_class": "org.apereo.cas.services.DefaultRegisteredServiceAccessStrategy",
+      "enabled": true,
+      "ssoEnabled": true,
+      "requireAllAttributes": true,
+      "requiredAttributes": { },
+      "rejectedAttributes": { },
+      "caseInsensitive": false,
+      "delegatedAuthenticationPolicy": {
+        # see https://apereo.github.io/cas/6.5.x/integration/Delegate-Authentication-AuthenticationPolicy.html
+        "_class": "org.apereo.cas.services.DefaultRegisteredServiceDelegatedAuthenticationPolicy",
+        "allowedProviders": [ ],
+        "permitUndefined": true,
+        # "exclusive" means
+        # "Decides whether authentication should be exclusively limited to allowed providers, disabling other methods such as username/password, etc."
+        # Use false to allow other methods.
+        "exclusive": false
+      }
+    }
+  }
+]
 

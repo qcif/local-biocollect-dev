@@ -133,6 +133,7 @@ services:
     volumes:
       - 'mongo_data:/data/db'
       - '{{ guest_src_dir }}:/opt/src'
+      - '{{ import_dir }}:{{ import_dir }}'
     restart: 'no'
     logging:
       driver: 'journald'

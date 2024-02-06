@@ -121,7 +121,6 @@ run_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install \
   curl jq unzip gnupg gnupg-agent dos2unix \
   default-libmysqlclient-dev \
   build-essential pkg-config \
-  chromium-browser chromium-chromedriver firefox firefox-geckodriver \
   lsb-release libsystemd-dev
 
 "${ANSIBLE_VENV_DIR}/bin/pip" install -U pymongo docker PyMySQL mysqlclient

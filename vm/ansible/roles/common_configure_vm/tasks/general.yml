@@ -66,15 +66,15 @@
     group: 'root'
     mode: 'u=rw,g=r,o=r'
 
-- name: Template the shared log4j config file
-  ansible.builtin.template:
-    src: 'log4j2.xml'
-    dest: '{{ log4j2_config_path }}'
-    force: true
-    backup: false
-    owner: 'root'
-    group: 'root'
-    mode: 'u=rw,g=r,o=r'
+# java
+- name: Install java
+  ansible.builtin.apt:
+    name:
+      - 'openjdk-8-jdk-headless'
+      - 'openjdk-8-dbg'
+      - 'openjdk-11-jdk-headless'
+      - 'openjdk-11-dbg'
+    state: 'present'
 
 # apt packages
 - name: Configure apt source and install packages

@@ -24,6 +24,9 @@
     - name: Set up app cas
       ansible.builtin.import_role:
         name: app_cas
+    - name: Set up app cas management
+      ansible.builtin.import_role:
+        name: app_casmgmt
     - name: Set up app apikey
       ansible.builtin.import_role:
         name: app_apikey

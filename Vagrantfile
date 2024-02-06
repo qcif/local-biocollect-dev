@@ -96,6 +96,8 @@ Vagrant.configure("2") do |config|
     'alerts_debug_port': 5905,
     'theme_http_port': 8906,
     'dashboard_http_port': 8907,
+    'casmgmt_http_port': 8908,
+    'casmgmt_debug_port': 5908,
   }
 
   # This refers to the Ubuntu release code name.
@@ -116,7 +118,7 @@ Vagrant.configure("2") do |config|
   ubuntu_apt_arm64_url = "https://mirror.aarnet.edu.au/pub/ubuntu/ports"
 
   # Change the memory and CPU to suit your machine.
-  # Note that a minimal, mostly usable virtual machine requires at least 6BG and 4 CPUs to run
+  # Note that a minimal, mostly usable virtual machine requires at least 6GB and 4 CPUs to run
   # CAS, Apikey, Userdetails, Ecodata, and Biocollect.
   vagrant_memory = 8192 # in MB
   vagrant_cpus = 6

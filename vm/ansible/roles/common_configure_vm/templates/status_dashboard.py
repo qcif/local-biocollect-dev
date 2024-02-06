@@ -6,6 +6,7 @@ import asyncio
 from dataclasses import dataclass
 import sys
 from datetime import timezone, datetime
+from zoneinfo import ZoneInfo
 
 import psutil
 from pystemd.systemd1 import Unit, Manager
@@ -143,7 +144,8 @@ class ServerSentEvent:
 
 
 def build_event(services_data: list[dict]) -> ServerSentEvent:
-    now = datetime.now(timezone.utc)
+    tz = ZoneInfo("{{ timezone_name }}")
+    now = datetime.now(tz=tz)
     return ServerSentEvent(
         data=json.dumps(
             {"services": services_data, "time": now.isoformat(timespec="seconds")}

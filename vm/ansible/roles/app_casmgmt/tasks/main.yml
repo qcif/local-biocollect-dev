@@ -1,0 +1,8 @@
+---
+
+- name: Generate secrets
+  ansible.builtin.import_tasks: secrets.yml
+
+- name: General
+  ansible.builtin.import_tasks: general.yml
+

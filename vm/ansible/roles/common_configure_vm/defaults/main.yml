@@ -11,10 +11,10 @@ config_dir: '{{ guest_home_dir }}/config'
 log_dir: '{{ guest_home_dir }}/logs'
 
 systemd_services_dir: '/etc/systemd/system'
+import_dir: '{{ guest_home_dir }}/import'
 
 # shared files
 logback_config_path: '{{ config_dir }}/logback.xml'
-log4j2_config_path: '{{ config_dir }}/log4j2.xml'
 systemd_env_vars_path: '{{ config_dir }}/systemd-env-vars'
 bash_env_vars_path: '{{ ubuntu_profile_dir }}/02-additional-env-vars.sh'
 
@@ -31,6 +31,8 @@ nginx_proxy_headers_conf_path: '{{ nginx_conf_partial_path }}/nginx-proxy-header
 # --- services ---
 
 local_host: 'localhost'
+user_admin_name: 'local-admin'
+user_standard_name: 'local-standard'
 
 # object store service
 objectstore_service_username: 'object-service-username'
@@ -60,9 +62,9 @@ mysql_base_url: 'jdbc:mysql://{{ web_base_host }}:{{ specified_ports.mysql_servi
 
 # --- apt source installs ---
 
-java_8_home_dir: '/usr/lib/jvm/temurin-8-jdk-amd64'
+java_8_home_dir: '/usr/lib/jvm/java-8-openjdk-amd64'
 java_8_java_file: '{{ java_8_home_dir }}/bin/java'
-java_11_home_dir: '/usr/lib/jvm/temurin-11-jdk-amd64'
+java_11_home_dir: '/usr/lib/jvm/java-11-openjdk-amd64'
 java_11_java_file: '{{ java_11_home_dir }}/bin/java'
 
 docker_compose_file: 'docker-compose.yml'
@@ -104,22 +106,6 @@ apt_source_items:
       - name: 'nginx'
         version: '{{ specified_versions.nginx }}'
         origin: 'nginx'
-
-  # java
-  - name: 'adoptium'
-    gpg_url: 'https://packages.adoptium.net/artifactory/api/gpg/key/public'
-    gpg_fingerprint_expected: '3B04D753C9050D9A5D343F39843C48A565F8F04B'
-    apt_url: 'https://packages.adoptium.net/artifactory/deb'
-    apt_arch: '{{ vagrant_architecture | lower }}'
-    apt_dist: '{{ ubuntu_release | lower }}'
-    apt_component: 'main'
-    packages:
-      - name: 'temurin-8-jdk'
-        version: '8.*'
-        origin: 'Artifactory'
-      - name: 'temurin-11-jdk'
-        version: '11.*'
-        origin: 'Artifactory'
 
   # node js
   - name: 'nodesource'

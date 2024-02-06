@@ -1,0 +1,14 @@
+{
+  "{{ user_admin_name }}": {
+    "@class": "org.apereo.cas.mgmt.authz.json.UserAuthorizationDefinition",
+    "roles": [
+      "ROLE_ADMIN"
+    ]
+  },
+  "{{ user_standard_name }}": {
+    "@class": "org.apereo.cas.mgmt.authz.json.UserAuthorizationDefinition",
+    "roles": [
+      "ROLE_USER"
+    ]
+  }
+}

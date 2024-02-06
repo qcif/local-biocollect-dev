@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Specify the refresh internal in seconds. -->
+<Configuration monitorInterval="5">
+    <Appenders>
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %p [%c] - &lt;%m&gt;%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <AsyncLogger name="org.springframework.amqp" level="error" additivity="false">
+            <AppenderRef ref="console"/>
+        </AsyncLogger>
+        <AsyncLogger name="org.springframework.context.annotation" level="error" additivity="false">
+            <AppenderRef ref="console"/>
+        </AsyncLogger>
+        <AsyncLogger name="org.springframework.boot" level="info" additivity="false">
+            <AppenderRef ref="console"/>
+        </AsyncLogger>
+        <AsyncLogger name="org.springframework.web" level="trace" additivity="false">
+            <AppenderRef ref="console"/>
+        </AsyncLogger>
+        <AsyncLogger name="org.pac4j" level="info" additivity="false">
+            <AppenderRef ref="console"/>
+        </AsyncLogger>
+        <AsyncLogger name="org.apereo" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+        </AsyncLogger>
+        <AsyncLogger name="org.apereo.inspektr.audit.support.Slf4jLoggingAuditTrailManager" level="info" additivity="false">
+            <AppenderRef ref="console"/>
+        </AsyncLogger>
+        <AsyncLogger name="org.apache.tomcat" level="trace" additivity="false">
+            <AppenderRef ref="console"/>
+        </AsyncLogger>
+        <AsyncLogger name="org.apache.coyote" level="trace" additivity="false">
+            <AppenderRef ref="console"/>
+        </AsyncLogger>
+        <AsyncRoot level="info">
+            <AppenderRef ref="console"/>
+        </AsyncRoot>
+    </Loggers>
+</Configuration>

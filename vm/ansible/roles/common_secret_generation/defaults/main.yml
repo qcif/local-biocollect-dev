@@ -1,5 +1,6 @@
 ---
 secret_gen_dir: '{{ guest_home_dir }}/secret_generation'
 
-# exclude  '":;@/\%&?#+$  so the password can be printed as a string and in jdbc urls
-secret_gen_special_chars: '~!^*()_{}|<>`-=[],.'
+# exclude  '":;@/\%&?#+$`  so the password can be printed as a string and in jdbc urls and in bash scripts
+# include only these symbols in passwords:
+secret_gen_special_chars: '~!^*()_{}|<>-=[],.'

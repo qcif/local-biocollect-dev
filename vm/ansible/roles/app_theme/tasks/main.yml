@@ -9,6 +9,9 @@
     mode: 'u=rwx,g=rx,o=rx'
   loop:
     - '{{ app_theme_html_dir }}'
+    - '{{ app_theme_html_dir }}/img'
+    - '{{ app_theme_html_dir }}/js'
+    - '{{ app_theme_html_dir }}/css'
 
 - name: Template the nginx conf
   ansible.builtin.template:
@@ -51,3 +54,53 @@
     - 'head.html'
     - 'menu.html'
     - 'custom_link.html'
+
+- name: Copy the theme image files
+  ansible.builtin.copy:
+    src: '{{ item }}'
+    dest: '{{ app_theme_html_dir }}/img/{{ item }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  loop:
+    - 'android-icon-192x192.png'
+    - 'android-chrome-192x192.png'
+    - 'android-chrome-256x256.png'
+    - 'apple-touch-icon.png'
+    - 'brand-logo.png'
+    - 'browserconfig.xml'
+    - 'favicon.ico'
+    - 'favicon.png'
+    - 'favicon-16x16.png'
+    - 'favicon-32x32.png'
+    - 'mstile-150x150.png'
+    - 'safari-pinned-tab.svg'
+    - 'site.webmanifest'
+
+- name: Copy the theme js files
+  ansible.builtin.copy:
+    src: '{{ item }}'
+    dest: '{{ app_theme_html_dir }}/js/{{ item }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  loop:
+    - 'bootstrap.min.js'
+    - 'application.js'
+
+- name: Copy the theme css files
+  ansible.builtin.copy:
+    src: '{{ item }}'
+    dest: '{{ app_theme_html_dir }}/css/{{ item }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  loop:
+    - 'ala-styles.css'
+    - 'bootstrap.min.css'

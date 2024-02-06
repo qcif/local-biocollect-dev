@@ -1,0 +1,144 @@
+---
+
+- name: Create directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'directory'
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rwx,g=rx,o=rx'
+  loop:
+    - '{{ app_casmgmt_config_dir }}'
+
+- name: Template the bash functions file
+  ansible.builtin.template:
+    src: 'helpers.sh'
+    dest: '{{ app_casmgmt_helper_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ app_casmgmt_name }}'
+    entry_java: '{{ app_casmgmt_java }}'
+    entry_builder: '{{app_casmgmt_builder }}'
+    entry_working_dir: '{{ app_casmgmt_source_dir }}'
+    entry_java_sys_props: '{{ app_casmgmt_java_sys_props }}'
+    entry_java_jvm_opts: '{{ app_casmgmt_java_jvm_opts }}'
+    entry_env_vars: '{{ app_casmgmt_env_vars }}'
+    entry_java_artifact_name: 'build/libs/cas-management-*-exec.war'
+    entry_is_service: true
+
+- name: Template the nginx conf
+  ansible.builtin.template:
+    src: 'entry-nginx.conf'
+    dest: '{{ app_casmgmt_entry_nginx_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_name: '{{ app_casmgmt_name }}'
+    entry_ports: '{{ app_casmgmt_ports }}'
+    entry_working_dir: '{{ app_casmgmt_source_dir }}'
+
+- name: Template the nginx html
+  ansible.builtin.template:
+    src: 'entry-index.html'
+    dest: '{{ app_casmgmt_entry_html_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    entry_group: '{{ app_casmgmt_group }}'
+    entry_category: '{{ app_casmgmt_category }}'
+    entry_name: '{{ app_casmgmt_name }}'
+    entry_ports: '{{ app_casmgmt_ports }}'
+    entry_links: '{{ app_casmgmt_links }}'
+
+- name: Template the systemd unit file
+  ansible.builtin.template:
+    src: 'app-systemd.service'
+    dest: '{{ app_casmgmt_systemd_service_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  notify:
+    - Systemd daemon reload
+  vars:
+    entry_name: '{{ app_casmgmt_name }}'
+    entry_java: '{{ app_casmgmt_java }}'
+    entry_config_path: '{{ app_casmgmt_config_path }}'
+    entry_working_dir: '{{ app_casmgmt_source_dir }}'
+    entry_builder: '{{app_casmgmt_builder }}'
+    entry_java_sys_props: '{{ app_casmgmt_java_sys_props }}'
+    entry_java_jvm_opts: '{{ app_casmgmt_java_jvm_opts }}'
+    entry_env_vars: '{{ app_casmgmt_env_vars }}'
+    entry_debug_port: '{{ specified_ports.casmgmt_debug_port }}'
+
+- name: Template the config file
+  ansible.builtin.template:
+    src: 'application.yml'
+    dest: '{{ app_casmgmt_config_path }}'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Template the users file
+  ansible.builtin.template:
+    src: 'users.json'
+    dest: '{{ app_casmgmt_config_dir }}/users.json'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Template the log4j config file
+  ansible.builtin.template:
+    src: 'log4j2.xml'
+    dest: '{{ app_casmgmt_log4j2_config_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Template the tomcat logging config file
+  ansible.builtin.template:
+    src: 'logging.properties'
+    dest: '{{ app_casmgmt_tomcat_logging_path }}'
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Ensure mongodb users exist and can access mongodb databases
+  community.mongodb.mongodb_user:
+    login_database: '{{ mongo_service_auth_database }}'
+    login_host: '{{ local_host }}'
+    login_password: "{{ mongo_service_root_password }}"
+    login_port: '{{ specified_ports.mongo_service_port }}'
+    login_user: '{{ mongo_service_root_username }}'
+    auth_mechanism: '{{ mongo_service_auth_mechanism }}'
+    database: '{{ mongo_service_auth_database }}'
+    name: '{{ item.user }}'
+    password: "{{ item.pass }}"
+    roles: '{{ item.roles }}'
+    state: present
+  loop:
+    - database: "{{ app_casmgmt_mongo_db_spring_data_database }}"
+      user: "{{ app_casmgmt_mongo_db_spring_data_username }}"
+      pass: "{{ app_casmgmt_mongo_db_spring_data_password }}"
+      roles:
+        - db: '{{ app_casmgmt_mongo_db_spring_data_database }}'
+          role: 'readWrite'
