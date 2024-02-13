@@ -90,7 +90,7 @@ echo "Unknown java '{{ entry_java }}'."
 exit 1
 {% endif %}
 
-export MAVEN_OPTS="-Xmx800m"
+export MAVEN_OPTS="-Xmx1g"
 
 cd "{{ entry_working_dir }}" || exit 1
 

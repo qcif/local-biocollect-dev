@@ -46,20 +46,29 @@ server:
 
   # The 'server.*' settings are for the embedded containers that ship with CAS.
   port: {{ specified_ports.cas_http_port }}
-  forward-headers-strategy: NATIVE
+  forward-headers-strategy: 'NATIVE'
 
   session:
     timeout: 86400
 
   ssl:
-    enabled: false
-    key-store: ''
+    enabled: true
+    key-store: 'file:{{ app_cas_java_keystore_path }}'
+    key-store-password: '{{ app_cas_java_keystore_secret }}'
+    key-password: '{{ app_cas_java_keystore_secret }}'
+    certificate-private-key: '{{ app_cas_java_key_pem_path }}'
+    certificate: '{{ app_cas_java_cert_pem_path }}'
 
   servlet:
     application-display-name: '[Org Name Short] [Proj Name Short] [{{ app_cas_name }}] [dev]'
     context-path: '/{{ app_cas_name }}'
     session:
       timeout: '8h'
+
+    encoding:
+      enabled: true
+      charset: 'UTF-8'
+      force: true
 
   # see https://docs.spring.io/spring-boot/docs/2.7.x/reference/htmlsingle/#howto.webserver.use-behind-a-proxy-server
   tomcat:
@@ -76,7 +85,8 @@ server:
     # see https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#howto.webserver.use-behind-a-proxy-server
     # Whether requests to the context root should be redirected by appending a / to the path.
     # When using SSL terminated at a proxy, this property should be set to false.
-    redirect-context-root: false
+    redirect-context-root: true
+
     remoteip:
       # see https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#application-properties.server.server.tomcat.remoteip.host-header
       host-header: X-Forwarded-Host
@@ -91,6 +101,8 @@ server:
 # --- CAS settings ---
 
 cas:
+  host:
+    name: '{{ app_cas_name }}'
 
 # --- CAS translation settings ---
 
@@ -107,11 +119,10 @@ cas:
   server:
     # 'name': Full name of the CAS server. This is the public-facing address of the CAS deployment and not the individual node address.
     # e.g. https://cas.example.org:8443
-    name: '{{ web_base_url }}'
+    name: '{{ web_base_https_url }}'
     # 'prefix': A concatenation of the server name plus the CAS context path. Deployments at root likely need to blank out this value.
     # e.g. http://localhost/cas
-    # /{{ app_cas_name }}
-    prefix: '{{ web_base_url }}'
+    prefix: '{{ web_base_https_url }}/{{ app_cas_name }}'
     # 'scope': The CAS Server scope.
     # e.g. example.org
     scope: '{{ web_base_host }}'
@@ -121,18 +132,21 @@ cas:
       # see https://apereo.github.io/cas/6.6.x/installation/Configuring-Servlet-Container-Embedded-Tomcat.html
       # The 'cas.server.tomcat.*' settings are to enable HTTP connections for the embedded Tomcat container,
       # *in addition* to the configuration linked to the 'server.port' setting.
+      http:
+        # See https://apereo.github.io/cas/6.6.x/installation/Configuring-Servlet-Container-Embedded-Tomcat.html
+        # Enable a separate port for the embedded container for HTTP access.
+        # The embedded tomcat server is configured using 'server.*' settings.
+        - enabled: false
       http-proxy:
         # see https://apereo.github.io/cas/6.6.x/installation/Configuring-Servlet-Container-Embedded-Tomcat.html#http--proxying
-        enabled: true
-        secure: false
-        scheme: 'http'
+        enabled: false
+        secure: true
+        scheme: 'https'
         protocol: 'HTTP/1.1'
-        proxy-port: {{ specified_ports.web_service_port }}
+        proxy-port: {{ specified_ports.web_service_https_port }}
         redirect-port: {{ specified_ports.cas_http_port }}
       ssl-valve:
         enabled: false
-  host:
-    name: '{{ web_base_url }}/{{ app_cas_name }}'
 
 # -- CAS http and CORS settings ---
 
@@ -313,7 +327,7 @@ cas:
       jwks:
         # https://apereo.github.io/cas/6.6.x/authentication/OIDC-Authentication-JWKS.html
         file-system:
-          jwks-file: 'file:/home/vagrant/services/cas-keystore.jwks'
+          jwks-file: 'file:{{ services_dir }}/cas-keystore.jwks'
 
       discovery:
         # https://apereo.github.io/cas/6.6.x/authentication/OIDC-Authentication-Discovery.html
@@ -465,7 +479,7 @@ ala:
 # --- ALA cookie settings ---
 
   cookie:
-    domain: '{{ web_base_authority }}'
+    domain: '{{ web_base_authority_https }}'
     httpOnly: true
     # maxAge of 86400 seconds is 1 day
     maxAge: 86400

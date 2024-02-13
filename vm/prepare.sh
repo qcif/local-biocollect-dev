@@ -81,7 +81,7 @@ if [[ ! -f "/etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-${UBUNTU_RELEASE}.list
   log "INFO" "Add deadsnakes ppa."
 
   run_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -yq upgrade
-  run_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install software-properties-common python3-apt python-apt-common python3-packaging ca-certificates apt-transport-https
+  run_cmd sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install software-properties-common python3-apt python-apt-common python3-packaging apt-transport-https
   sudo DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:deadsnakes/ppa
 fi
 

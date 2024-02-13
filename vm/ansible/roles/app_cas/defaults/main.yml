@@ -6,7 +6,7 @@ app_cas_category: 'auth'
 app_cas_builder: 'maven'
 app_cas_java: '11'
 app_cas_ports:
-  http: '{{ specified_ports.cas_http_port }}'
+  https: '{{ specified_ports.cas_http_port }}'
   debug: '{{ specified_ports.cas_debug_port }}'
 app_cas_links:
   tests: 'target/site/surefire-report.html'
@@ -22,6 +22,10 @@ app_cas_config_pwe_path: '{{ app_cas_config_dir }}/cas-pwe-config.properties'
 app_cas_source_dir: '{{ guest_src_dir }}/ala-cas-5'
 app_cas_log4j2_config_path: '{{ app_cas_config_dir }}/log4j2.xml'
 app_cas_tomcat_logging_path: '{{ app_cas_config_dir }}/tomcat-logging.properties'
+app_cas_java_keystore_path: '{{ services_dir }}/cas-ssl-keystore'
+app_cas_java_cert_path: '{{ services_dir }}/cas-ssl-cert'
+app_cas_java_cert_pem_path: '{{ services_dir }}/cas-ssl-cert.crt'
+app_cas_java_key_pem_path: '{{ services_dir }}/cas-ssl-cert.key'
 
 # databases
 app_cas_mysql_db_main_database: 'cas_main'
@@ -55,7 +59,7 @@ app_cas_java_sys_props:
 app_cas_java_jvm_opts:
   - 'XX:+UseG1GC'
   - 'Xms256m'
-  - 'Xmx800m'
+  - 'Xmx1500m'
   - 'XX:ErrorFile={{ services_dir }}/{{ app_cas_name }}_hs_err_pid_%p.log'
 
 app_cas_env_vars:

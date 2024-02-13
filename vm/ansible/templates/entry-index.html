@@ -7,7 +7,7 @@
     <td>
         <nav class="nav nav-underline" role="navigation">
 
-            {% if 'http' in entry_ports %}
+            {% if 'http' in entry_ports or 'https' in entry_ports %}
             <a class="nav-link"
                href="{{ web_base_url }}/{{ entry_name }}">
                 web

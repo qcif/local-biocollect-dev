@@ -68,7 +68,8 @@ Vagrant.configure("2") do |config|
   # the various ports in use
   specified_ports = {
     # services
-    'web_service_port': 8880,
+    'web_service_port': 80,
+    'web_service_https_port': 443,
     'pdf_service_port': 8083,
     'mail_service_http_port': 1080,
     'mail_service_smtp_port': 1025,
@@ -246,6 +247,7 @@ Vagrant.configure("2") do |config|
 
   # forwarded ports - third party apps
   config.vm.network "forwarded_port", guest: specified_ports[:web_service_port], host: specified_ports[:web_service_port], host_ip: localhost_domain
+  config.vm.network "forwarded_port", guest: specified_ports[:web_service_https_port], host: specified_ports[:web_service_https_port], host_ip: localhost_domain
 
   # forward the debug ports
   specified_ports.each { |key, value|

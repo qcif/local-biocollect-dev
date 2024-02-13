@@ -32,6 +32,11 @@
     group: 'root'
     mode: 'u=rw,g=r,o=r'
 
+- name: Generate the ssl dhparams pem file (may take a while to run)
+  command: "openssl dhparam -out {{ server_ssl_dhparam_file }} {{ server_ssl_dhparam_target_size }}"
+  args:
+    creates: '{{ server_ssl_dhparam_file }}'
+
 - name: Enable nginx
   ansible.builtin.systemd:
     name: 'nginx'

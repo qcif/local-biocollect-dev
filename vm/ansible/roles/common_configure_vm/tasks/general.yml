@@ -29,6 +29,7 @@
     mode: 'u=rwx,g=rx,o=rx'
   loop:
     - '{{ services_dir }}'
+    - '{{ markers_dir }}'
     - '{{ web_partial_dir }}'
     - '{{ config_dir }}'
     - '{{ log_dir }}'
@@ -91,3 +92,28 @@
     apt_source_packages: '{{ item.packages }}'
   loop: '{{ apt_source_items }}'
 
+# update the java cacerts keystore password
+
+- name: Check if Java cacerts keystore changed file exists
+  ansible.builtin.stat:
+    path: '{{ markers_dir }}/java-cacert-password'
+  register: java_cacert_password_changed_result
+
+- name: Change password for Java cacerts keystore
+  ansible.builtin.command:
+    cmd: >
+      {{ java_11_keytool_path }}
+      -storepasswd
+      -storepass 'changeit'
+      -keystore '{{ java_11_cacert_path }}'
+      -new '{{ java_cacert_password }}'
+  when: not java_cacert_password_changed_result.stat.exists
+
+- name: Create Java cacerts keystore changed file
+  ansible.builtin.file:
+    path: '{{ markers_dir }}/java-cacert-password'
+    state: touch
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  when: not java_cacert_password_changed_result.stat.exists

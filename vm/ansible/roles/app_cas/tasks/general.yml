@@ -204,3 +204,119 @@
 #      "{{ app_cas_mongo_db_main_database }}"
 #      "{{ import_dir }}/set-cas-services.js"'
 #  changed_when: true
+
+# Set up java keystore, to provide SSL cert, so CAS will start.
+# It seems like an SSL cert is required even in local dev,
+# because the spring security config includes .requireSecure() (cas & casmgmt)
+# and does not have an obvious way to disable.
+
+# Note that the idea is to generate a keypair (public & private keys) in a new java keystore.
+# Then export the public key and import the public key into the system keystore (cacerts)
+# so that the system trusts the SSL cert.
+# Specify the path to the new keystore in the cas and cas mgmt config.
+
+- name: Generate CAS self-signed SSL cert using Java 11 keytool
+  become_user: 'vagrant'
+  ansible.builtin.command:
+    cmd: >
+      {{ java_11_keytool_path }}
+      -genkeypair
+      -alias 'cas'
+      -keyalg 'RSA'
+      -keypass '{{ app_cas_java_keystore_secret }}'
+      -storepass '{{ app_cas_java_keystore_secret }}'
+      -keystore '{{ app_cas_java_keystore_path }}'
+      -dname 'CN=cas.example.org,OU=Example,OU=Org,C=US'
+      -ext 'SAN=dns:example.org,dns:localhost,ip:127.0.0.1'
+      -storetype 'PKCS12'
+  args:
+    creates: "{{ app_cas_java_keystore_path }}"
+
+- name: Export the CAS SSL cert to a file using Java 11 keytool
+  become_user: 'vagrant'
+  ansible.builtin.command:
+    cmd: >
+      {{ java_11_keytool_path }}
+      -exportcert
+      -alias 'cas'
+      -storepass '{{ app_cas_java_keystore_secret }}'
+      -keystore '{{ app_cas_java_keystore_path }}'
+      -file '{{ app_cas_java_cert_path }}'
+  args:
+    creates: "{{ app_cas_java_cert_path }}"
+
+- name: Import the CAS SSL cert into the system Java 11 keystore
+  community.general.java_cert:
+    executable: '{{ java_11_keytool_path }}'
+    keystore_create: true
+    keystore_path: '{{ java_11_cacert_path }}'
+    keystore_pass: '{{ java_cacert_password }}'
+    cert_alias: 'cas'
+    cert_path: '{{ app_cas_java_cert_path }}'
+    trust_cacert: true
+    state: present
+
+# Ref: https://ubuntu.com/server/docs/security-trust-store
+- name: Convert the CAS SSL cert from 'DER' into 'PEM' format
+  become_user: 'vagrant'
+  ansible.builtin.command:
+    cmd: >
+      /usr/bin/openssl
+      x509 -inform der -outform pem
+      -in '{{ app_cas_java_cert_path }}'
+      -out '{{ app_cas_java_cert_pem_path }}'
+  args:
+    creates: "{{ app_cas_java_cert_pem_path }}"
+
+- name: Copy the CAS SSL cert into the system CA directory
+  ansible.builtin.copy:
+    src: '{{ app_cas_java_cert_pem_path }}'
+    dest: '/usr/local/share/ca-certificates/cas-ssl-cert.crt'
+    remote_src: yes
+    force: true
+    backup: false
+    owner: 'root'
+    group: 'root'
+    mode: 'u=rw,g=r,o=r'
+  register: app_cas_java_cert_pem_copied_result
+
+- name: Import the CAS SSL cert into the system CA store
+  ansible.builtin.command:
+    cmd: update-ca-certificates
+  when: app_cas_java_cert_pem_copied_result.changed
+
+- name: Export the CAS SSL private key to 'PEM' file
+  become_user: 'vagrant'
+  ansible.builtin.command:
+    cmd: >
+      /usr/bin/openssl
+      pkcs12
+      -in '{{ app_cas_java_keystore_path }}'
+      -passin 'pass:{{ app_cas_java_keystore_secret }}'
+      -nodes
+      -nocerts
+      -out '{{ app_cas_java_key_pem_path }}'
+  args:
+    creates: "{{ app_cas_java_key_pem_path }}"
+
+- name: Ensure correct file permissions
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'file'
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  loop:
+    - '{{ app_cas_java_cert_pem_path }}'
+    - '{{ app_cas_java_cert_path }}'
+
+- name: Ensure correct file permissions
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'file'
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=,o='
+  loop:
+    - '{{ app_cas_java_key_pem_path }}'
+    - '{{ app_cas_java_keystore_path }}'

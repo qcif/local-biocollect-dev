@@ -25,3 +25,37 @@ nginx_cors_settings: |
    add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range' always;
    add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
   }
+
+nginx_ssl_ciphers:
+  # TLS 1.3
+  - 'TLS_AES_128_GCM_SHA256'
+  - 'TLS_AES_256_GCM_SHA384'
+  - 'TLS_CHACHA20_POLY1305_SHA256'
+  # TLS 1.2
+  - 'ECDHE-ECDSA-AES128-GCM-SHA256'
+  - 'ECDHE-RSA-AES128-GCM-SHA256'
+  - 'ECDHE-ECDSA-AES256-GCM-SHA384'
+  - 'ECDHE-RSA-AES256-GCM-SHA384'
+  - 'ECDHE-ECDSA-CHACHA20-POLY1305'
+  - 'ECDHE-RSA-CHACHA20-POLY1305'
+  - 'DHE-RSA-AES128-GCM-SHA256'
+  - 'DHE-RSA-AES256-GCM-SHA384'
+  # Explicitly disabled
+  - '!aNULL'
+  - '!eNULL'
+  - '!EXPORT'
+  - '!DES'
+  - '!3DES'
+  - '!MD4'
+  - '!MD5'
+  - '!PSK'
+  - '!RC2'
+  - '!RC4'
+  - '!ADH'
+  - '!AH'
+  - '!DSS'
+  - '!SEED'
+  - '!IDEA'
+
+server_ssl_dhparam_file: '/etc/ssl/private/dhparam.pem'
+server_ssl_dhparam_target_size: 2048

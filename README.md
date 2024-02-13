@@ -55,7 +55,7 @@ The steps to set up the local code and start the Vagrant VM:
 4. Open a command line and change directory to `biocollect-dev/local-biocollect-dev`.
 5. Start the Vagrant machine `vagrant up --provision`.
 6. SSH into the development machine using `vagrant ssh`.
-7. View the overview of the status of the virtual machine at [the local dev landing page](http://localhost:8880)
+7. View the overview of the status of the virtual machine at [the local dev landing page](http://localhost:80)
 
 The first run of the ansible provisioning might take a while as it needs to download quite a few dependencies.
 
@@ -119,7 +119,7 @@ dev_app_ecodata_service start
 dev_app_biocollect_service start
 ```
 
-You can then view the application websites using the `web` links on [the local dev landing page](http://localhost:8880).
+You can then view the application websites using the `web` links on [the local dev landing page](http://localhost:80).
 
 If you need to remove all the database and generated data and start over:
 
@@ -194,5 +194,5 @@ source dashboard-venv/bin/activate
 python services/status_dashboard.py
 ```
 
-Then visit [the server sent events page](http://localhost:8880/sse/).
+Then visit [the server sent events page](http://localhost:80/sse/).
 
