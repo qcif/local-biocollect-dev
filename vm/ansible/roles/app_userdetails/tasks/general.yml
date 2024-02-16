@@ -91,6 +91,26 @@
     group: 'vagrant'
     mode: 'u=rw,g=r,o=r'
 
+- name: Template the ehcache app file
+  ansible.builtin.template:
+    src: 'app-ehcache.xml'
+    dest: '{{ app_userdetails_config_dir }}/userdetails-app-ehcache.xml'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+
+- name: Template the ehcache db file
+  ansible.builtin.template:
+    src: 'db-ehcache.xml'
+    dest: '{{ app_userdetails_config_dir }}/userdetails-db-ehcache.xml'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+
 - name: Ensure mongodb users exist and can access mongodb databases
   community.mongodb.mongodb_user:
     login_database: '{{ mongo_service_auth_database }}'

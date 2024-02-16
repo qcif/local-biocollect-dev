@@ -36,7 +36,7 @@ jndi:
 # --- Basic settings ---
 
 info:
-  description: '[Org Name Short] [Proj Name Short] [{{ app_casmgmt_name }}] [dev]'
+  description: '{{ org_name_short }} {{ proj_name_short }} [{{ app_casmgmt_name }}] {{ deployment_short }}'
 logging:
   config: 'file:{{ app_casmgmt_log4j2_config_path }}'
 
@@ -58,7 +58,7 @@ server:
     key-password: '{{ app_cas_java_keystore_secret }}'
 
   servlet:
-    application-display-name: '[Org Name Short] [Proj Name Short] [{{ app_casmgmt_name }}] [dev]'
+    application-display-name: '{{ org_name_short }} {{ proj_name_short }} [{{ app_casmgmt_name }}] {{ deployment_short }}'
     context-path: '/{{ app_casmgmt_name }}'
     session:
       timeout: '8h'
@@ -530,8 +530,8 @@ ala:
     userDetailsUrl: '{{ web_base_url }}/{{ app_userdetails_name }}'
     resetPasswordUrl: '{{ web_base_url }}/{{ app_userdetails_name }}/registration/forgottenPassword'
     createAccountUrl: '{{ web_base_url }}/{{ app_userdetails_name }}/registration/createAccount'
-    orgShortName: '[Org Name Short] [Proj Name Short]'
-    orgLongName: '[Org Name Long] [Proj Name Long]'
+    orgShortName: '{{ org_name_short }} {{ proj_name_short }}'
+    orgLongName: '{{ org_name_long }} {{ proj_name_long }}'
     orgNameKey: 'org-name-code'
     loginFormUserPass: true
     cacheDuration: PT30m
@@ -608,5 +608,5 @@ mgmt:
   delegated:
     enabled: false
   cas-servers:
-    - name: '[Org Name Short] [Proj Name Short] [{{ app_cas_name }}] [dev]'
+    - name: '{{ org_name_short }} {{ proj_name_short }} [{{ app_cas_name }}] {{ deployment_short }}'
       url: '{{ web_base_url }}/{{ app_cas_name }}'

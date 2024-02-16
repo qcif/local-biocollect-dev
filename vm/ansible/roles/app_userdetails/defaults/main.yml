@@ -6,8 +6,8 @@ app_userdetails_category: 'auth'
 app_userdetails_builder: 'gradle'
 app_userdetails_java: '11'
 app_userdetails_ports:
-  http: '{{ specified_ports.userdetails_http_port }}'
   debug: '{{ specified_ports.userdetails_debug_port }}'
+  http: '{{ specified_ports.userdetails_http_port }}'
 app_userdetails_links:
   tests: 'build/reports/tests/'
 

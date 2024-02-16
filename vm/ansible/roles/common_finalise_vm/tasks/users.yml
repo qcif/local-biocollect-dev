@@ -1,0 +1,108 @@
+---
+
+- name: Check the parameters
+  ansible.builtin.fail:
+    msg: "Must define '{{ user_item }}'."
+  when: 'not user_item or not user_item.strip()'
+  loop:
+    - user_profile_org
+    - user_profile_city
+    - user_profile_state
+    - user_profile_country
+    - user_cas_roles
+    - user_email
+    - user_name_first
+    - user_name_last
+    - user_access
+  loop_control:
+    loop_var: 'user_item'
+
+- name: Register user identifier
+  ansible.builtin.set_fact:
+    user_identifier: "user_{{ user_email | replace('@', '_') }}"
+
+- name: Check CAS user marker file
+  ansible.builtin.stat:
+    path: '{{ markers_dir }}/{{ user_identifier }}'
+  register: create_cas_user_marker_result
+
+- name: Generate user password
+  ansible.builtin.import_role:
+    name: common_secret_generation
+  vars:
+    secret_gen_size: 30
+    secret_gen_type: password_string
+    secret_gen_name: 'user_password_{{ user_identifier }}'
+  when: not create_cas_user_marker_result.stat.exists
+
+- name: Create bcrypt encoded password
+  ansible.builtin.set_fact:
+    user_password: "{{ secret_gen_value | password_hash('blowfish', '9018106146574514862728', ident='2a')}}"
+  when: not create_cas_user_marker_result.stat.exists
+
+# TODO: CAS must run before this to ensure the database tables are created.
+- name: Create the user in the CAS database
+  community.mysql.mysql_query:
+    login_host: '{{ local_host }}'
+    login_port: '{{ specified_ports.mysql_service_port }}'
+    login_user: '{{ mysql_service_root_username }}'
+    login_password: '{{ mysql_service_root_password }}'
+    login_db: '{{ app_cas_mysql_db_main_database }}'
+    query:
+      - > 
+        CALL sp_create_user(
+          '{{ user_email }}',
+          '{{ user_name_first }}',
+          '{{ user_name_last }}',
+          '{{ user_password }}',
+          '{{ user_profile_org }}',
+          '{{ user_profile_city }}',
+          '{{ user_profile_state }}',
+          '{{ user_profile_country }}',
+          @out_user_id
+        )
+      - 'SELECT @out_user_id'
+    single_transaction: true
+  when: not create_cas_user_marker_result.stat.exists
+  register: create_cas_user_result
+
+#- name: Show result from creating CAS user
+#  ansible.builtin.debug:
+#    msg: "{{ create_cas_user_result }}"
+#  when: not create_cas_user_marker_result.stat.exists
+
+- name: Template the CAS permissions access entries js file
+  ansible.builtin.template:
+    src: 'create-user-access.js'
+    dest: '{{ import_dir }}/create-user-access.js'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  vars:
+    user_access: '{{ user_access }}'
+  when: not create_cas_user_marker_result.stat.exists and user_access
+
+- name: Create the CAS permissions access entries
+  ansible.builtin.command:
+    cmd: >
+      docker exec mongo_service sh -c
+      'mongo
+      --quiet
+      --authenticationDatabase "{{ mongo_service_auth_database }}"
+      --username "{{ app_ecodata_db_main_username }}"
+      --password "{{ app_ecodata_db_password }}"
+      "{{ app_ecodata_db_main_database }}"
+      "{{ import_dir }}/create-user-access.js"'
+  when: not create_cas_user_marker_result.stat.exists and user_access
+
+- name: Create CAS user marker file
+  ansible.builtin.file:
+    path: '{{ markers_dir }}/{{ user_identifier }}'
+    state: touch
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  when: not create_cas_user_marker_result.stat.exists
+

@@ -6,8 +6,8 @@ app_casmgmt_category: 'auth'
 app_casmgmt_builder: 'gradle'
 app_casmgmt_java: '11'
 app_casmgmt_ports:
-  https: '{{ specified_ports.casmgmt_http_port }}'
   debug: '{{ specified_ports.casmgmt_debug_port }}'
+  https: '{{ specified_ports.casmgmt_http_port }}'
 app_casmgmt_links:
   tests: 'build/reports/tests/'
 

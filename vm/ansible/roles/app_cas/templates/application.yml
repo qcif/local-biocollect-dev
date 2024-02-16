@@ -36,7 +36,7 @@ jndi:
 # --- Basic settings ---
 
 info:
-  description: '[Org Name Short] [Proj Name Short] [{{ app_cas_name }}] [dev]'
+  description: '{{ org_name_short }} {{ proj_name_short }} [{{ app_cas_name }}] {{ deployment_short }}'
 logging:
   config: 'file:{{ app_cas_log4j2_config_path }}'
 
@@ -60,7 +60,7 @@ server:
     certificate: '{{ app_cas_java_cert_pem_path }}'
 
   servlet:
-    application-display-name: '[Org Name Short] [Proj Name Short] [{{ app_cas_name }}] [dev]'
+    application-display-name: '{{ org_name_short }} {{ proj_name_short }} [{{ app_cas_name }}] {{ deployment_short }}'
     context-path: '/{{ app_cas_name }}'
     session:
       timeout: '8h'
@@ -250,28 +250,29 @@ cas:
         threshold: 5
 
     jdbc:
-      # https://apereo.github.io/cas/6.6.x/authentication/Database-Authentication.html
-      - <<: *shared_datasource_mysql_defaults
-        <<: *common_datasource_mysql_main_properties
-        sql: "SELECT p.password as password, not u.activated or u.locked as disabled, COALESCE(p.expiry < CURRENT_TIMESTAMP(), 0) as expired, FALSE as legacy_password FROM passwords p JOIN users u ON u.userid = p.userid AND p.status = 'CURRENT' AND p.type = 'bcrypt' WHERE u.username = ?;"
-        fieldPassword: password
-        fieldDisabled: disabled
-        driverClass: com.mysql.cj.jdbc.Driver
-        principalAttributeList: legacy_password:legacyPassword
-        # principalAttributeList:sn,cn:commonName,givenName
-        passwordEncoder:
-          type: BCRYPT
-          characterEncoding: UTF-8
-          strength: 10
-      - <<: *shared_datasource_mysql_defaults
-        <<: *common_datasource_mysql_main_properties
-        sql: "SELECT p.password as password, not u.activated or u.locked as disabled, COALESCE(p.expiry < CURRENT_TIMESTAMP(), 0) as expired, TRUE as legacy_password FROM passwords p JOIN users u ON u.userid = p.userid AND p.status = 'CURRENT' WHERE u.username = ?;"
-        fieldPassword: password
-        fieldDisabled: disabled
-        driverClass: com.mysql.cj.jdbc.Driver
-        principalAttributeList: legacy_password:legacyPassword
-        passwordEncoder:
-          type: au.org.ala.cas.password.AlaPasswordEncoder
+      query:
+        # https://apereo.github.io/cas/6.6.x/authentication/Database-Authentication.html
+        - <<: *shared_datasource_mysql_defaults
+          <<: *common_datasource_mysql_main_properties
+          sql: "SELECT p.password as password, not u.activated or u.locked as disabled, COALESCE(p.expiry < CURRENT_TIMESTAMP(), 0) as expired, FALSE as legacy_password FROM passwords p JOIN users u ON u.userid = p.userid AND p.status = 'CURRENT' AND p.type = 'bcrypt' WHERE u.username = ?;"
+          fieldPassword: password
+          fieldDisabled: disabled
+          driverClass: com.mysql.cj.jdbc.Driver
+          principalAttributeList: legacy_password:legacyPassword
+          # principalAttributeList:sn,cn:commonName,givenName
+          passwordEncoder:
+            type: BCRYPT
+            characterEncoding: UTF-8
+            strength: 10
+        - <<: *shared_datasource_mysql_defaults
+          <<: *common_datasource_mysql_main_properties
+          sql: "SELECT p.password as password, not u.activated or u.locked as disabled, COALESCE(p.expiry < CURRENT_TIMESTAMP(), 0) as expired, TRUE as legacy_password FROM passwords p JOIN users u ON u.userid = p.userid AND p.status = 'CURRENT' WHERE u.username = ?;"
+          fieldPassword: password
+          fieldDisabled: disabled
+          driverClass: com.mysql.cj.jdbc.Driver
+          principalAttributeList: legacy_password:legacyPassword
+          passwordEncoder:
+            type: au.org.ala.cas.password.AlaPasswordEncoder
 
 # --- CAS as client / proxy using pac4j to delegate authentication ---
 
@@ -532,8 +533,8 @@ ala:
     userDetailsUrl: '{{ web_base_url }}/{{ app_userdetails_name }}'
     resetPasswordUrl: '{{ web_base_url }}/{{ app_userdetails_name }}/registration/forgottenPassword'
     createAccountUrl: '{{ web_base_url }}/{{ app_userdetails_name }}/registration/createAccount'
-    orgShortName: '[Org Name Short] [Proj Name Short]'
-    orgLongName: '[Org Name Long] [Proj Name Long]'
+    orgShortName: '{{ org_name_short }} {{ proj_name_short }}'
+    orgLongName: '{{ org_name_long }} {{ proj_name_long }}'
     orgNameKey: 'org-name-code'
     loginFormUserPass: true
     cacheDuration: PT30m

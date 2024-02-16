@@ -118,3 +118,42 @@
       roles:
         - db: '{{ app_ecodata_db_test_database }}'
           role: 'readWrite'
+
+- name: Check Ecodata hub marker file
+  ansible.builtin.stat:
+    path: '{{ markers_dir }}/ecodata-hub-default'
+  register: create_ecodata_hub_marker_result
+
+- name: Template the Ecodata hub js file
+  ansible.builtin.template:
+    src: 'create-hub.js'
+    dest: '{{ import_dir }}/create-hub.js'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  when: not create_ecodata_hub_marker_result.stat.exists
+
+- name: Create the mongodb Ecodata hub entry
+  ansible.builtin.command:
+    cmd: >
+      docker exec mongo_service sh -c
+      'mongo
+      --quiet
+      --authenticationDatabase "{{ mongo_service_auth_database }}"
+      --username "{{ app_ecodata_db_main_username }}"
+      --password "{{ app_ecodata_db_password }}"
+      "{{ app_ecodata_db_main_database }}"
+      "{{ import_dir }}/create-hub.js"'
+  changed_when: true
+  when: not create_ecodata_hub_marker_result.stat.exists
+
+- name: Create Ecodata hub marker file
+  ansible.builtin.file:
+    path: '{{ markers_dir }}/ecodata-hub-default'
+    state: touch
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  when: not create_ecodata_hub_marker_result.stat.exists

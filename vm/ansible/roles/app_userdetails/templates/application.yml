@@ -37,12 +37,14 @@ hibernate:
     queries: true
     use_second_level_cache: true
     use_query_cache: true
+
     region:
       factory_class: 'jcache'
   javax:
     cache:
+      missing_cache_strategy: 'create'
       provider: 'org.ehcache.jsr107.EhcacheCachingProvider'
-      uri: 'classpath:userdetails-ehcache.xml'
+      uri: 'file:{{ app_userdetails_config_dir }}/userdetails-db-ehcache.xml'
 
 dataSource:
   <<: *shared_datasource_mysql_defaults
@@ -50,6 +52,23 @@ dataSource:
 # --- Spring ---
 
 spring:
+  main:
+    banner-mode: "off"
+  groovy:
+    template:
+      check-template-location: false
+  jmx:
+    unique-names: true
+  devtools:
+    restart:
+      additional-exclude:
+        - '*.gsp'
+        - '**/*.gsp'
+        - '*.gson'
+        - '**/*.gson'
+        - 'logback.groovy'
+        - '*.properties'
+
   flyway: &common_spring_flyway_properties
     enabled: true
     baselineOnMigrate: true
@@ -62,6 +81,9 @@ spring:
     store-type: mongodb
     mongo:
       collectionName: sessions_userdetails
+    grails:
+      mutableAttributes:
+        - SYNCHRONIZER_TOKENS_HOLDER
 
   data: &common_spring_data_properties
     mongodb:
@@ -71,15 +93,39 @@ spring:
 
 server:
   port: '{{ specified_ports.userdetails_http_port }}'
+  forward-headers-strategy: 'NATIVE'
+  session:
+    timeout: 86400
   ssl:
     enabled: false
   servlet:
-    application-display-name: '{{ app_userdetails_name }}'
+    application-display-name: '{{ org_name_short }} {{ proj_name_short }} [{{ app_userdetails_name }}] {{ deployment_short }}'
     context-path: '/{{ app_userdetails_name }}'
+    session:
+      timeout: '8h'
+    encoding:
+      enabled: true
+      charset: 'UTF-8'
+      force: true
+  tomcat:
+    use-relative-redirects: false
+    redirect-context-root: true
+    remoteip:
+      # see https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#application-properties.server.server.tomcat.remoteip.host-header
+      host-header: X-Forwarded-Host
+      protocol-header: X-Forwarded-Proto
+      port-header: X-Forwarded-Port
+      remote-ip-header: X-Forwarded-For
+      protocol-header-https-value: https
+  error:
+    include-stacktrace: 'ALWAYS'
 
 # --- Auth & CAS ---
 
 security: &app_security_settings
+  core:
+    uri-filter-pattern: ['/admin/*','/registration/editAccount','/my-profile','/my-profile/','/myprofile/','/myprofile','/profile/*','/admin/','/admin','/registration/update','/registration/update/*','/monitoring','/monitoring/*','/registration/disableAccount/*','/registration/disableAccount','/admin/admin/downloadUsersCsvFile','/alaAdmin/*']
+    optional-filter-pattern: ['/']
   jwt:
     enabled: false
     discoveryUri: '{{ web_base_url }}/{{ app_cas_name }}/oidc/.well-known'
@@ -103,11 +149,41 @@ security: &app_security_settings
 # --- Grails settings ---
 
 grails: &app_grails_settings
+  <<: *shared_grails_config_defaults
   hostname: '{{ web_base_host }}'
   serverURL: '{{ web_base_url }}/{{ app_userdetails_name }}'
   mail:
     <<: *shared_grails_mail_defaults
+  profile: web
+  codegen:
+    defaultPackage: au.org.ala.userdetails
+  spring:
+    transactionManagement:
+      proxies: false
+  gorm:
+    # Whether to autowire entities.
+    # Disabled by default for performance reasons.
+    autowire: false
+    reactor:
+      # Whether to translate GORM events into Reactor events
+      # Disabled by default for performance reasons
+      events: false
+  plugins:
+    twitterbootstrap:
+      fixtaglib: true
+  cache:
+    ehcache:
+      ehcacheXmlLocation: 'file:{{ app_userdetails_config_dir }}/userdetails-app-ehcache.xml'
 
+info:
+  app:
+    name: '@info.app.name@'
+    version: '@info.app.version@'
+    grailsVersion: '@info.app.grailsVersion@'
+
+webservice:
+  jwt: true
+  scope: "openid"
 
 # --- Theme and skin ---
 
@@ -116,6 +192,138 @@ headerAndFooter:
 
 skin:
   <<: *shared_skin_defaults
+
+# --- Custom app settings ---
+
+# Allow to disable some tools for non-ALA Portals
+myProfile:
+  useDigiVol: false
+  useSandbox: false
+  useBiocollect: true
+
+registration:
+  showAlaMessage: false
+  resetPasswordArticle:
+  alertArticle:
+  activationArticle:
+
+recaptcha:
+  baseUrl: https://www.google.com/recaptcha/api/
+  siteKey:
+  secretKey:
+
+password:
+  encoder: bcrypt # or legacy
+  generatedLength: 10
+
+  # Passwords must satisfy this policy.
+  # The minLength policy is always required, even when the policy is disabled. It has a default value of 8.
+  # To remove / disable an aspect of the policy, either remove the item or set to 0 / false, whichever is relevant.
+  policy:
+    minLength: 8
+    enabled: true
+    maxLength: 64
+    excludeUsername: true
+    excludeUsQwertyKeyboardSequence: true
+    excludeCommonPasswords: true
+    charGroupMinRequired: 3
+    charGroupMinUpperCase: 1
+    charGroupMinLowerCase: 1
+    charGroupMinUpperOrLowerCase: 0
+    charGroupMinDigit: 1
+    charGroupMinSpecial: 1
+
+bcrypt:
+  strength: 10
+
+attributes:
+  states:
+    path: 'classpath:states.json'
+  affiliations:
+    enabled: false
+
+privacyPolicy: '{{ app_theme_custom_url }}'
+termsOfUse: '{{ app_theme_custom_url }}'
+
+
+logo:
+  biocollect: https://www.ala.org.au/app/uploads/2019/05/BioCollect-icon-1.png
+  spatialportal: https://www.ala.org.au/app/uploads/2019/06/19-0078_ALA_ICON_IconSuite_Spatial-Portal.svg
+  digivol: https://www.ala.org.au/app/uploads/2019/04/specimen-icon.png
+  specieslists: https://www.ala.org.au/app/uploads/2019/06/19-0078_ALA_ICON_IconSuite_Species-Lists.svg
+  api: https://www.ala.org.au/app/uploads/2019/06/19-0078_ALA_ICON_IconSuite_Web-service-APIs.svg
+  inaturalist: https://www.ala.org.au/app/uploads/2019/09/iNaturalist_logomark-alaBlack-icon.png
+  sandbox: https://www.ala.org.au/app/uploads/2019/06/19-0078_ALA_ICON_IconSuite_Sandbox-1.svg
+  downloads: https://www.ala.org.au/app/uploads/2019/06/19-0078_ALA_ICON_IconSuite_Download-Predefined-Datasets.svg
+  flickr: https://upload.wikimedia.org/wikipedia/commons/3/31/Flickr_font_awesome.svg
+
+oauth:
+  #  debug: true
+  providers:
+    flickr:
+      enabled: false
+      api: 'com.github.scribejava.apis.FlickrApi'
+      key: "xxxxxxxxxxxxxxxxxxxxx"
+      secret: "xxxxxxxxxxxxxxxxxxxxx"
+      successUri: '/profile/flickrSuccess'
+      failureUri: '/profile/flickrFail'
+      callback: "xxxxxxxxxxxxx/yyyyyyyyyy/profile/flickrCallback"
+    inaturalist:
+      enabled: false
+      api: 'au.org.ala.oauth.apis.InaturalistApi'
+      key: 'xxxxxxxxxxxxxxxxxxxxx'
+      secret: 'xxxxxxxxxxxxxxxxxxxxx'
+      successUri: '/profile/inaturalistSuccess'
+      failureUri: '/profile/inaturalistFailure'
+      callback: 'xxxxxx/yyyyyyy/profile/inaturalistCallback'
+
+inaturalist:
+  name: iNaturalist Australia
+  baseUrl: '{{ app_theme_custom_url }}'
+  searchQuery: data_resource_uid:dr1411
+  sightingsSearchQuery: data_resource_uid:dr364
+
+biocache:
+  search:
+    baseUrl: '{{ app_theme_custom_url }}'
+
+sightings:
+  url: '{{ app_theme_custom_url }}'
+
+myData:
+  url: '{{ app_theme_custom_url }}'
+
+biocollect:
+  url: '{{ web_base_url }}/{{ app_biocollect_name }}'
+
+openapi:
+  title: UserDetails REST services
+  description: REST services for interacting with the user details webapp
+  terms: '{{ app_theme_custom_url }}'
+  contact:
+    name: Support
+    email: '{{ email_address }}'
+  license:
+    name: Mozilla Public License 1.1
+    url: https://www.mozilla.org/en-US/MPL/1.1/
+  version: '@info.app.version@'
+  cachetimeoutms: 0
+  components:
+    security:
+      oauth2:
+        scopes:
+          users/read: Read or list any or all user records
+          users/write: Write to a user's record, eg update a user's attributes.
+
+supportEmail: '{{ email_address }}'
+homeUrl: '{{ web_base_url }}/{{ app_biocollect_name }}'
+homeLogoUrl: '{{ web_base_url }}/{{ app_theme_name }}/favicon.png'
+mainTitle: '{{ deployment_name }}'
+emailSenderTitle: '{{ deployment_name }}'
+emailSender: '{{ email_address }}'
+
+markdown:
+  removeHtml: true
 
 # --- Set for the environments to override config embedded in app ---
 

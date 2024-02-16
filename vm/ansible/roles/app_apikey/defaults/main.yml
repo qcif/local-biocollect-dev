@@ -6,8 +6,8 @@ app_apikey_category: 'auth'
 app_apikey_builder: 'gradle'
 app_apikey_java: '11'
 app_apikey_ports:
-  http: '{{ specified_ports.apikey_http_port }}'
   debug: '{{ specified_ports.apikey_debug_port }}'
+  http: '{{ specified_ports.apikey_http_port }}'
 app_apikey_links:
   tests: 'build/reports/tests/'
 

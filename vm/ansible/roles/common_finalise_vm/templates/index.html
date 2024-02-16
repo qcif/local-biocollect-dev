@@ -74,7 +74,7 @@
                 </nav>
             </td>
             <td>
-                <span class="badge text-bg-secondary">{{ specified_ports.pdf_service_port }}</span>
+                {{ specified_ports.pdf_service_port }}
             </td>
             <td></td>
         </tr>
@@ -88,12 +88,14 @@
                     <a class="nav-link"
                        href="/db-ui-service?server=mysql_service:{{ specified_ports.mysql_service_port }}&username={{ mysql_service_root_username }}&db=mysql">web</a>
                     <a class="nav-link set-clipboard-on-click" href="#"
-                       data-service-password="{{ mysql_service_root_password }}">copy password</a>
+                       data-service-password="{{ mysql_service_root_username }}">copy user</a>
+                    <a class="nav-link set-clipboard-on-click" href="#"
+                       data-service-password="{{ mysql_service_root_password }}">copy pass</a>
                 </nav>
             </td>
             <td>
-                <span class="badge text-bg-secondary">{{ specified_ports.mysql_service_port }}</span>
-                <span class="badge text-bg-secondary">{{ specified_ports.db_ui_service_http_port }}</span>
+                {{ specified_ports.mysql_service_port }} |
+                {{ specified_ports.db_ui_service_http_port }}
             </td>
             <td></td>
         </tr>
@@ -105,12 +107,13 @@
                 <nav class="nav">
                     <a class="nav-link" href="/mongo-ui-service">web</a>
                     <a class="nav-link set-clipboard-on-click" href="#"
-                       data-service-password="{{ mongo_service_root_password }}">copy password</a>
+                       data-service-password="{{ mongo_service_root_username }}">copy user</a>
+                    <a class="nav-link set-clipboard-on-click" href="#"
+                       data-service-password="{{ mongo_service_root_password }}">copy pass</a>
                 </nav>
             </td>
             <td>
-                <span class="badge text-bg-secondary">{{ specified_ports.mongo_service_port }}</span>
-                <span class="badge text-bg-secondary">{{ specified_ports.mongo_ui_service_http_port }}</span>
+                {{ specified_ports.mongo_service_port }} | {{ specified_ports.mongo_ui_service_http_port }}
             </td>
             <td></td>
         </tr>
@@ -121,14 +124,15 @@
             <td>
                 <nav class="nav">
                     <a class="nav-link"
-                       href="/db-ui-service?elastic=elasticsearch_service:{{ specified_ports.elasticsearch_service_port }}&username=elastic&db=">web</a>
+                       href="/db-ui-service?elastic=elasticsearch_service:{{ specified_ports.elasticsearch_service_port }}&username={{ elasticsearch_service_root_username }}&db=">web</a>
                     <a class="nav-link set-clipboard-on-click" href="#"
-                       data-service-password="{{ elasticsearch_service_root_password }}">copy password</a>
+                       data-service-password="{{ elasticsearch_service_root_username }}">copy user</a>
+                    <a class="nav-link set-clipboard-on-click" href="#"
+                       data-service-password="{{ elasticsearch_service_root_password }}">copy pass</a>
                 </nav>
             </td>
             <td>
-                <span class="badge text-bg-secondary">{{ specified_ports.elasticsearch_service_port }}</span>
-                <span class="badge text-bg-secondary">{{ specified_ports.db_ui_service_http_port }}</span>
+                {{ specified_ports.elasticsearch_service_port }} | {{ specified_ports.db_ui_service_http_port }}
             </td>
             <td></td>
         </tr>
@@ -143,8 +147,7 @@
                 </nav>
             </td>
             <td>
-                <span class="badge text-bg-secondary">{{ specified_ports.mail_service_http_port }}</span>
-                <span class="badge text-bg-secondary">{{ specified_ports.mail_service_smtp_port }}</span>
+                {{ specified_ports.mail_service_http_port }} | {{ specified_ports.mail_service_smtp_port }}
             </td>
             <td></td>
         </tr>
@@ -159,8 +162,7 @@
                 </nav>
             </td>
             <td>
-                <span class="badge text-bg-secondary">{{ specified_ports.objectstore_service_main_port }}</span>
-                <span class="badge text-bg-secondary">{{ specified_ports.objectstore_service_console_port }}</span>
+                {{ specified_ports.objectstore_service_main_port }} | {{ specified_ports.objectstore_service_console_port }}
             </td>
             <td></td>
         </tr>

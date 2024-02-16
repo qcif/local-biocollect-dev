@@ -1,0 +1,105 @@
+<!--
+  ~ Copyright (C) 2022 Atlas of Living Australia
+  ~ All Rights Reserved.
+  ~
+  ~ The contents of this file are subject to the Mozilla Public
+  ~ License Version 1.1 (the "License"); you may not use this file
+  ~ except in compliance with the License. You may obtain a copy of
+  ~ the License at http://www.mozilla.org/MPL/
+  ~
+  ~ Software distributed under the License is distributed on an "AS
+  ~ IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+  ~ implied. See the License for the specific language governing
+  ~ rights and limitations under the License.
+  -->
+<eh:config
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns:eh='http://www.ehcache.org/v3'
+        xmlns:jsr107='http://www.ehcache.org/v3/jsr107'
+        xsi:schemaLocation="
+        http://www.ehcache.org/v3 https://www.ehcache.org/schema/ehcache-core-3.6.xsd
+        http://www.ehcache.org/v3/jsr107 https://www.ehcache.org/schema/ehcache-107-ext-3.6.xsd">
+
+    <eh:persistence directory="${java.io.tmpdir}/userdetails-db-ehcache"/>
+
+    <eh:cache-template name="default">
+        <eh:key-type>java.io.Serializable</eh:key-type>
+        <eh:value-type>java.io.Serializable</eh:value-type>
+        <eh:expiry>
+            <eh:tti unit="hours">1</eh:tti>
+        </eh:expiry>
+        <eh:resources>
+            <eh:heap>1000</eh:heap>
+            <eh:disk unit="GB">1</eh:disk>
+        </eh:resources>
+    </eh:cache-template>
+
+    <eh:cache alias="dailyCache">
+        <eh:expiry>
+            <eh:ttl unit="days">1</eh:ttl>
+        </eh:expiry>
+        <eh:resources>
+            <eh:heap>10000</eh:heap>
+        </eh:resources>
+    </eh:cache>
+
+    <eh:cache alias="states">
+        <eh:expiry>
+            <eh:tti unit="hours">4</eh:tti>
+        </eh:expiry>
+        <eh:resources>
+            <eh:heap>100</eh:heap>
+        </eh:resources>
+    </eh:cache>
+
+    <!-- ala-admin-plugin: @Cacheable("systemMessageCache") -->
+    <eh:cache alias="systemMessageCache">
+        <eh:expiry>
+            <eh:ttl unit="days">1</eh:ttl>
+        </eh:expiry>
+        <eh:resources>
+            <eh:heap>100</eh:heap>
+        </eh:resources>
+    </eh:cache>
+
+    <!-- ala-ws-security: spring cacheManager "apiKeys" -->
+    <eh:cache alias="apiKeys">
+        <eh:expiry>
+            <eh:ttl unit="hours">2</eh:ttl>
+        </eh:expiry>
+        <eh:resources>
+            <eh:heap>100</eh:heap>
+        </eh:resources>
+    </eh:cache>
+
+    <!-- ala-security-project/ala-auth:  @Cacheable("userListCache") -->
+    <eh:cache alias="userListCache">
+        <eh:expiry>
+            <eh:ttl unit="hours">1</eh:ttl>
+        </eh:expiry>
+        <eh:resources>
+            <eh:heap>1000</eh:heap>
+        </eh:resources>
+    </eh:cache>
+
+    <!-- ala-security-project/ala-auth:  @Cacheable("userDetailsCache") -->
+    <eh:cache alias="userDetailsCache">
+        <eh:expiry>
+            <eh:tti unit="hours">1</eh:tti>
+        </eh:expiry>
+        <eh:resources>
+            <eh:heap>10000</eh:heap>
+        </eh:resources>
+    </eh:cache>
+
+    <!-- ala-security-project/ala-auth:  @Cacheable("userDetailsByIdCache") -->
+    <eh:cache alias="userDetailsByIdCache">
+        <eh:expiry>
+            <eh:tti unit="hours">1</eh:tti>
+        </eh:expiry>
+        <eh:resources>
+            <eh:heap>100</eh:heap>
+        </eh:resources>
+    </eh:cache>
+
+</eh:config>

@@ -12,3 +12,18 @@
 
 - name: Install and configure nginx
   ansible.builtin.import_tasks: nginx.yml
+
+- name: Users
+  ansible.builtin.include_tasks:
+    file: users.yml
+  vars:
+    user_profile_org: '{{ item.profile_org }}'
+    user_profile_city: '{{ item.profile_city }}'
+    user_profile_state: '{{ item.profile_state }}'
+    user_profile_country: '{{ item.profile_country }}'
+    user_cas_roles: '{{ item.cas_roles }}'
+    user_email: '{{ item.email }}'
+    user_name_first: '{{ item.name_first }}'
+    user_name_last: '{{ item.name_last }}'
+    user_access: '{{ item.access }}'
+  loop: '{{ user_defs }}'

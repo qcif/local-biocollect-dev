@@ -5,4 +5,3 @@
 
 - name: General
   ansible.builtin.import_tasks: general.yml
-

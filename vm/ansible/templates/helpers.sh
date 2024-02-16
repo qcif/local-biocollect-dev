@@ -66,11 +66,11 @@ export -n JAVA_HOME
 
 
 function dev_{{ entry_name }}_refresh() {
-dev_{{ entry_name }}_maven clean -T 5
+dev_{{ entry_name }}_maven clean
 }
 
 function dev_{{ entry_name }}_assemble() {
-dev_{{ entry_name }}_maven package -T 5
+dev_{{ entry_name }}_maven package
 }
 
 function dev_{{ entry_name }}_test() {
@@ -95,7 +95,7 @@ export MAVEN_OPTS="-Xmx1g"
 cd "{{ entry_working_dir }}" || exit 1
 
 /usr/bin/dos2unix '{{ entry_working_dir }}/mvnw' || exit 1
-'{{ entry_working_dir }}/mvnw' -Dmaven.plugin.validation=VERBOSE "$@"
+'{{ entry_working_dir }}/mvnw' -Dmaven.plugin.validation=VERBOSE -T auto "$@"
 
 export -n JAVA_HOME
 export -n MAVEN_OPTS

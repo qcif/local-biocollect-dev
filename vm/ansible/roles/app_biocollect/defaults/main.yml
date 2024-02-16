@@ -6,8 +6,8 @@ app_biocollect_category: 'web'
 app_biocollect_builder: 'gradle'
 app_biocollect_java: '11'
 app_biocollect_ports:
-  http: '{{ specified_ports.biocollect_http_port }}'
   debug: '{{ specified_ports.biocollect_debug_port }}'
+  http: '{{ specified_ports.biocollect_http_port }}'
 app_biocollect_links:
   tests: 'build/reports/tests/'
 

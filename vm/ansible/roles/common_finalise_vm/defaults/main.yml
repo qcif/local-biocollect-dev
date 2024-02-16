@@ -59,3 +59,73 @@ nginx_ssl_ciphers:
 
 server_ssl_dhparam_file: '/etc/ssl/private/dhparam.pem'
 server_ssl_dhparam_target_size: 2048
+
+# user definitions
+user_admin_name: 'overall-admin@localhost'
+user_standard_name: 'standard-user-01@localhost'
+email_address: 'example@example.org'
+
+user_def_common: &user_def_common
+  name_last: 'Example User'
+  profile_org: '{{ org_name_long }}'
+  profile_city: 'Example City'
+  profile_state: 'Example State'
+  profile_country: 'Example Country'
+
+user_defs:
+  - name_first: 'Overall Admin'
+    email: '{{ user_admin_name }}'
+    cas_roles: ['ROLE_ADMIN', 'ROLE_USER']
+    access: []
+    <<: *user_def_common
+  - name_first: 'System Admin'
+    email: 'system-admin@localhost'
+    cas_roles: ['ROLE_SYSTEM_ADMIN', 'ROLE_USER']
+    <<: *user_def_common
+    access: []
+  - name_first: 'Ecodata Admin'
+    email: 'ecodata-admin@localhost'
+    cas_roles: ['ROLE_FC_ADMIN', 'ROLE_USER']
+    access: []
+    <<: *user_def_common
+  - name_first: 'Ecodata Officer Admin'
+    email: 'ecodata-officer-admin@localhost'
+    cas_roles: ['ROLE_FC_OFFICER', 'ROLE_USER']
+    access: []
+    <<: *user_def_common
+  - name_first: 'Ecodata Read Only Admin'
+    email: 'ecodata-read-only-admin@localhost'
+    cas_roles: ['ROLE_FC_READ_ONLY', 'ROLE_USER']
+    access: []
+    <<: *user_def_common
+  - name_first: 'Biocollect Hub Admin'
+    email: 'biocollect-hub-admin@localhost'
+    cas_roles: ['ROLE_USER']
+    access:
+      - accessLevel: 'admin'
+        entityId: '{{ app_ecodata_hub_default_id }}'
+        entityType: 'au.org.ala.ecodata.Hub'
+    <<: *user_def_common
+  - name_first: 'Biocollect Hub Read Only Admin'
+    email: 'biocollect-hub-read-only-admin@localhost'
+    cas_roles: ['ROLE_USER']
+    access:
+      - accessLevel: 'readOnly'
+        entityId: '{{ app_ecodata_hub_default_id }}'
+        entityType: 'au.org.ala.ecodata.Hub'
+    <<: *user_def_common
+  - name_first: 'Standard User 01'
+    email: '{{ user_standard_name }}'
+    cas_roles: ['ROLE_USER']
+    access: []
+    <<: *user_def_common
+  - name_first: 'Standard User 02'
+    email: 'standard-user-02@localhost'
+    cas_roles: ['ROLE_USER']
+    access: []
+    <<: *user_def_common
+  - name_first: 'Standard User 03'
+    email: 'standard-user-03@localhost'
+    cas_roles: ['ROLE_USER']
+    access: []
+    <<: *user_def_common

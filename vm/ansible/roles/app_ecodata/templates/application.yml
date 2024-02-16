@@ -23,8 +23,7 @@ common_datasource_mongo_test_properties: &common_datasource_mongo_test_propertie
 common_database_elasticsearch_main_properties: &common_database_elasticsearch_main_properties
   host: '{{ web_base_host }}'
   port: '{{ specified_ports.elasticsearch_service_port }}'
-  # default username for elasticsearch is 'elastic', see https://www.elastic.co/guide/en/elasticsearch/reference/7.16/security-minimal-setup.html#security-create-builtin-users
-  username: 'elastic'
+  username: '{{ elasticsearch_service_root_username }}'
   password: '{{ elasticsearch_service_root_password }}'
 
 # --- Embedded tomcat ---

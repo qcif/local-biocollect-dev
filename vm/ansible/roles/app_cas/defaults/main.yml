@@ -6,8 +6,8 @@ app_cas_category: 'auth'
 app_cas_builder: 'maven'
 app_cas_java: '11'
 app_cas_ports:
-  https: '{{ specified_ports.cas_http_port }}'
   debug: '{{ specified_ports.cas_debug_port }}'
+  https: '{{ specified_ports.cas_http_port }}'
 app_cas_links:
   tests: 'target/site/surefire-report.html'
 
@@ -73,7 +73,7 @@ app_cas_env_vars:
 # cas service definition
 app_cas_db_services_defs: [
   {
-    "_class": "org.apereo.cas.services.RegexRegisteredService",
+    "_class": "org.apereo.cas.services.CasRegisteredService",
     "_id": 101,
     "id": 101,
     "name": "Local development services",
@@ -82,10 +82,13 @@ app_cas_db_services_defs: [
     "serviceId": "^https?://(127\\.0\\.0\\.1|localhost|::1\/128|::1|0:0:0:0:0:0:0:1)(:\\d+)?(/.*|$)",
     "theme": "ala",
     "logoutType": "BACK_CHANNEL",
-    "evaluationOrder": 1,
+    "evaluationOrder": 0,
     "requiredHandlers": [ ],
     "properties": { },
     "contacts": [ ],
+    "matchingStrategy": {
+      "@class": "org.apereo.cas.services.PartialRegexRegisteredServiceMatchingStrategy"
+    },
     "usernameAttributeProvider": {
       # see https://apereo.github.io/cas/6.5.x/integration/Attribute-Release-PrincipalId.html
       "_class": "org.apereo.cas.services.DefaultRegisteredServiceUsernameProvider",
@@ -138,4 +141,3 @@ app_cas_db_services_defs: [
     }
   }
 ]
-

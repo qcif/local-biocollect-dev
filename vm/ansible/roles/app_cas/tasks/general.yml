@@ -182,29 +182,6 @@
         - db: '{{ app_cas_mongo_db_spring_data_database }}'
           role: 'readWrite'
 
-#- name: Template the cas services js file
-#  ansible.builtin.template:
-#    src: 'set-cas-services.js'
-#    dest: '{{ import_dir }}/set-cas-services.js'
-#    force: true
-#    backup: false
-#    owner: 'vagrant'
-#    group: 'vagrant'
-#    mode: 'u=rw,g=r,o=r'
-#
-#- name: Update cas services mongo database
-#  ansible.builtin.command:
-#    cmd: >
-#      docker exec mongo_service sh -c
-#      'mongo
-#      --quiet
-#      --authenticationDatabase "{{ mongo_service_auth_database }}"
-#      --username "{{ app_cas_mongo_db_main_username }}"
-#      --password "{{ app_cas_mongo_db_main_password }}"
-#      "{{ app_cas_mongo_db_main_database }}"
-#      "{{ import_dir }}/set-cas-services.js"'
-#  changed_when: true
-
 # Set up java keystore, to provide SSL cert, so CAS will start.
 # It seems like an SSL cert is required even in local dev,
 # because the spring security config includes .requireSecure() (cas & casmgmt)
@@ -320,3 +297,67 @@
   loop:
     - '{{ app_cas_java_key_pem_path }}'
     - '{{ app_cas_java_keystore_path }}'
+
+# TODO: CAS must run before this to ensure the database tables are created.
+- name: Update the authorised system ips to match the local system
+  community.mysql.mysql_query:
+    login_host: '{{ local_host }}'
+    login_port: '{{ specified_ports.mysql_service_port }}'
+    login_user: '{{ mysql_service_root_username }}'
+    login_password: '{{ mysql_service_root_password }}'
+    login_db: '{{ app_cas_mysql_db_main_database }}'
+    single_transaction: true
+    query:
+      - "TRUNCATE TABLE `authorised_system`"
+      - >
+        INSERT INTO `authorised_system` (id, version, host, description)
+        VALUES
+        (NULL, 0, '127.0.0.1', 'localhost default')
+        ,(NULL, 0, '127.0.1.1', 'localhost distro name')
+        ,(NULL, 0, '127.0.2.1', 'localhost name')
+        ,(NULL, 0, '10.0.2.2', 'loopback alias')
+        {% for ip in ansible_facts['all_ipv4_addresses'] %}
+        ,(NULL, 0, '{{ ip }}', 'local ip address {{ loop.index }}')
+        {% endfor %}
+        {% for container_info in docker_container_ips_result.stdout_lines %}{% if (container_info | split(" - ") | last | trim) %}
+        ,(NULL, 0, '{{ container_info | split(" - ") | last | trim }}', 'docker ip for {{ container_info | split(" - ") | first | trim("/ ") }}')
+        {% endif %}{% endfor %}
+
+- name: Check cas services marker file
+  ansible.builtin.stat:
+    path: '{{ markers_dir }}/cas-services'
+  register: create_cas_services_marker_result
+
+- name: Template the cas services js file
+  ansible.builtin.template:
+    src: 'set-cas-services.js'
+    dest: '{{ import_dir }}/set-cas-services.js'
+    force: true
+    backup: false
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  when: not create_cas_services_marker_result.stat.exists
+
+- name: Update cas services mongo database
+  ansible.builtin.command:
+    cmd: >
+      docker exec mongo_service sh -c
+      'mongo
+      --quiet
+      --authenticationDatabase "{{ mongo_service_auth_database }}"
+      --username "{{ app_cas_mongo_db_main_username }}"
+      --password "{{ app_cas_mongo_db_main_password }}"
+      "{{ app_cas_mongo_db_main_database }}"
+      "{{ import_dir }}/set-cas-services.js"'
+  changed_when: true
+  when: not create_cas_services_marker_result.stat.exists
+
+- name: Create cas services marker file
+  ansible.builtin.file:
+    path: '{{ markers_dir }}/cas-services'
+    state: touch
+    owner: 'vagrant'
+    group: 'vagrant'
+    mode: 'u=rw,g=r,o=r'
+  when: not create_cas_services_marker_result.stat.exists

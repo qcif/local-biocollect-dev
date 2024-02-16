@@ -28,7 +28,7 @@
     </td>
     <td>
         {% for name, port in entry_ports.items() %}
-        <span class="badge text-bg-secondary">{{ port }}</span>
+        {{ port }}{% if not loop.last %} | {% endif %}
         {% endfor %}
     </td>
     <td data-group="{{ entry_group }}" data-name="{{ entry_name }}">

@@ -77,17 +77,15 @@
     cmd: 'docker ps -aq'
   register: docker_container_ids_result
 
-- name: Show information
-  ansible.builtin.debug:
-    var: docker_container_ids_result
+#- name: Show information
+#  ansible.builtin.debug:
+#    var: docker_container_ids_result
 
 - name: Get all docker container ip addresses
   ansible.builtin.command:
     cmd: "docker inspect -f {% raw %}'{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'{% endraw %} {% for container_id in docker_container_ids_result.stdout_lines %}{{ container_id }} {% endfor %}"
   register: docker_container_ips_result
 
-- name: Show information
-  ansible.builtin.debug:
-    var: docker_container_ips_result
-
-# TODO: use docker container ip addresses to allow access in userdetails authorised systems
+#- name: Show information
+#  ansible.builtin.debug:
+#    var: docker_container_ips_result

@@ -106,7 +106,8 @@ log "INFO" "Install and update Python packages for ansible."
 
 "${ANSIBLE_VENV_DIR}/bin/python" -m pip install -U pip
 "${ANSIBLE_VENV_DIR}/bin/pip" install -U setuptools wheel
-"${ANSIBLE_VENV_DIR}/bin/pip" install -U lxml "ansible-core==${ANSIBLE_VERSION}" ansible-lint
+"${ANSIBLE_VENV_DIR}/bin/pip" install -U lxml "ansible-core==${ANSIBLE_VERSION}" ansible-lint passlib==1.7.4
+# Python crypt module is deprecated, recommended replacement is passlib
 
 "${ANSIBLE_VENV_DIR}/bin/ansible-galaxy" collection install -p "${ANSIBLE_COLLECTIONS_DIR}" --upgrade \
   community.general ansible.posix \

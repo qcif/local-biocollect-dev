@@ -6,8 +6,8 @@ app_ecodata_category: 'web'
 app_ecodata_builder: 'gradle'
 app_ecodata_java: '11'
 app_ecodata_ports:
-  http: '{{ specified_ports.ecodata_http_port }}'
   debug: '{{ specified_ports.ecodata_debug_port }}'
+  http: '{{ specified_ports.ecodata_http_port }}'
 app_ecodata_links:
   tests: 'build/reports/tests/'
 
@@ -47,3 +47,43 @@ app_ecodata_env_vars:
     value: 'file:{{ app_ecodata_source_dir }}/grails-app/conf/application.groovy,file:{{ app_ecodata_config_path }}'
   - key: 'LOG4J_FORMAT_MSG_NO_LOOKUPS'
     value: 'true'
+
+app_ecodata_hub_default_id: "a2dffa51-e1d0-4c0f-a934-035c9b463c5a"
+app_ecodata_hub_default_defs:
+  - hubId: '{{ app_ecodata_hub_default_id }}'
+    title: "Default"
+    skin: "bs4"
+    urlPath: "default"
+    availableFacets: [
+        "isExternal",
+        "status",
+        "organisationFacet",
+        "associatedProgramFacet",
+        "associatedSubProgramFacet",
+        "mainThemeFacet",
+        "stateFacet",
+        "nrmFacet",
+        "lgaFacet",
+        "mvgFacet",
+        "ibraFacet",
+        "imcra4_pbFacet",
+        "otherFacet",
+        "gerSubRegionFacet",
+        "electFacet"
+      ]
+    adminFacets: [
+      "electFacet"
+    ]
+    availableMapFacets: [
+      "status",
+      "organisationFacet",
+      "associatedProgramFacet",
+      "associatedSubProgramFacet",
+      "stateFacet",
+      "nrmFacet",
+      "lgaFacet",
+      "mvgFacet",
+      "ibraFacet",
+      "imcra4_pbFacet",
+      "electFacet"
+    ]

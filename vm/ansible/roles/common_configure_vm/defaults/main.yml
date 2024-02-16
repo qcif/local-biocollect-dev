@@ -37,11 +37,16 @@ nginx_conf_partial_path: '/etc/nginx/conf.d'
 nginx_conf_path: '/etc/nginx/nginx.conf'
 nginx_proxy_headers_conf_path: '{{ nginx_conf_partial_path }}/nginx-proxy-headers.conf'
 
-# --- services ---
+# --- services and names ---
 
 local_host: 'localhost'
-user_admin_name: 'local-admin'
-user_standard_name: 'local-standard'
+
+deployment_name: 'Local Biocollect dev'
+deployment_short: '[dev]'
+org_name_long: '[ORG LONG]'
+org_name_short: '[ORG SHORT]'
+proj_name_long: '[PROJ LONG]'
+proj_name_short: '[PROJ SHORT]'
 
 # object store service
 objectstore_service_username: 'object-service-username'
@@ -51,7 +56,7 @@ mongo_service_auth_database: 'admin'
 mongo_service_root_username: 'mongodb_admin'
 mongo_service_auth_mechanism: 'SCRAM-SHA-256'
 mongo_default_uri_options: 'ssl=false&authSource={{ mongo_service_auth_database }}&authMechanism={{ mongo_service_auth_mechanism }}&connectTimeoutMS=30000&socketTimeoutMS=30000'
-
+mongo_default_check_result: "if((r.hasOwnProperty('ok') && r.ok != 1)||r.hasOwnProperty('writeConcernError')||r.hasOwnProperty('writeError')||r.hasOwnProperty('writeErrors')){printjson(r);throw('Mongo error.');}"
 
 # mysql
 mysql_service_root_host: '%'
@@ -68,6 +73,8 @@ mysql_default_uri_options: 'useSSL=false&requireSSL=false&sslMode=DISABLED&allow
 mysql_base_url: 'jdbc:mysql://{{ web_base_host }}:{{ specified_ports.mysql_service_port }}'
 
 # elasticsearch
+# default username for elasticsearch is 'elastic', see https://www.elastic.co/guide/en/elasticsearch/reference/7.16/security-minimal-setup.html#security-create-builtin-users
+elasticsearch_service_root_username: 'elastic'
 
 # --- apt source installs ---
 
